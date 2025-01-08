@@ -1,0 +1,577 @@
+
+#include <iostream>
+#include <unordered_map>
+
+#include "lexer.h"
+
+constexpr static KeywordType Keywords[] =
+{
+	{
+		.id = KeywordID::False,
+		.name = "False",
+	},
+	{
+		.id = KeywordID::True,
+		.name = "True",
+	},
+};
+
+std::ostream & operator << ( std::ostream &out, const KeywordType &keywordType )
+{
+	return out << "Keyword: " << Keywords[ static_cast<int>( keywordType.id ) ].name;
+}
+
+std::ostream & operator << ( std::ostream &out, const KeywordID &keywordID )
+{
+	return out << "Keyword: " << Keywords[ static_cast<int>( keywordID ) ].name;
+}
+
+static std::unordered_map<std::string, KeywordID> KeywordsMap =
+{
+	{ "false", KeywordID::False },
+	{ "true", KeywordID::True },
+};
+
+constexpr static TokenType TokenTypes[] =
+{
+	{
+		.id = TokenID::Keyword,
+		.name = "Keyword",
+	},
+	{
+		.id = TokenID::Identifier,
+		.name = "Identifier",
+	},
+	{
+		.id = TokenID::Number,
+		.name = "Number",
+	},
+	{
+		.id = TokenID::Minus,
+		.name = "Minus",
+	},
+	{
+		.id = TokenID::Plus,
+		.name = "Plus",
+	},
+	{
+		.id = TokenID::Divide,
+		.name = "Divide",
+	},
+	{
+		.id = TokenID::Assign,
+		.name = "Assign",
+	},
+	{
+		.id = TokenID::Equal,
+		.name = "Equal",
+	},
+	{
+		.id = TokenID::GreaterThan,
+		.name = "GreaterThan",
+	},
+	{
+		.id = TokenID::GreaterOrEqual,
+		.name = "GreaterOrEqual",
+	},
+	{
+		.id = TokenID::LesserThan,
+		.name = "LesserThan",
+	},
+	{
+		.id = TokenID::LesserOrEqual,
+		.name = "LesserOrEqual",
+	},
+	{
+		.id = TokenID::BitwiseAnd,
+		.name = "BitwiseAnd",
+	},
+	{
+		.id = TokenID::LogicalAnd,
+		.name = "LogicalAnd",
+	},
+	{
+		.id = TokenID::BitwiseOr,
+		.name = "BitwiseOr",
+	},
+	{
+		.id = TokenID::LogicalOr,
+		.name = "LogicalOr",
+	},
+	{
+		.id = TokenID::LogicalNot,
+		.name = "LogicalNot",
+	},
+	{
+		.id = TokenID::BitwiseNot,
+		.name = "BitwiseNot",
+	},
+	{
+		.id = TokenID::ParenOpen,
+		.name = "ParenOpen",
+	},
+	{
+		.id = TokenID::ParenClose,
+		.name = "ParenClose",
+	},
+	{
+		.id = TokenID::BlockOpen,
+		.name = "BlockOpen",
+	},
+	{
+		.id = TokenID::BlockClose,
+		.name = "BlockClose",
+	},
+	{
+		.id = TokenID::QuoteOpen,
+		.name = "QuoteOpen",
+	},
+	{
+		.id = TokenID::QuoteClose,
+		.name = "QuoteClose",
+	},
+	{
+		.id = TokenID::Comment,
+		.name = "Comment",
+	},
+	{
+		.id = TokenID::CommentBlockOpen,
+		.name = "CommentBlockOpen",
+	},
+	{
+		.id = TokenID::CommentBlockClose,
+		.name = "CommentBlockClose",
+	},
+	{
+		.id = TokenID::Period,
+		.name = "Period",
+	},
+	{
+		.id = TokenID::Comma,
+		.name = "Comma",
+	},
+	{
+		.id = TokenID::Colon,
+		.name = "Colon",
+	},
+	{
+		.id = TokenID::SemiColon,
+		.name = "SemiColon",
+	},
+	{
+		.id = TokenID::EndOfFile,
+		.name = "EndOfFile",
+	},
+};
+
+std::ostream & operator << ( std::ostream &out, const Token &token )
+{
+	out << "Token: " << TokenTypes[ static_cast<int>( token.id ) ].name;
+
+	switch ( token.id )
+	{
+	case TokenID::Keyword:
+		out << " ( " << token.valueString << " ) ";
+		break;
+
+	case TokenID::Identifier:
+		out << " ( " << token.valueString << " ) ";
+		break;
+
+	case TokenID::Number:
+		out << " ( " << token.valueNumber << " ) ";
+		break;
+
+	case TokenID::Minus:
+		out << " ( - ) ";
+		break;
+
+	case TokenID::Plus:
+		out << " ( + ) ";
+		break;
+
+	case TokenID::Divide:
+		out << " ( / ) ";
+		break;
+
+	case TokenID::Assign:
+		out << " ( = ) ";
+		break;
+
+	case TokenID::Equal:
+		out << " ( == ) ";
+		break;
+
+	case TokenID::GreaterThan:
+		out << " ( > ) ";
+		break;
+
+	case TokenID::GreaterOrEqual:
+		out << " ( >= ) ";
+		break;
+
+	case TokenID::LesserThan:
+		out << " ( < ) ";
+		break;
+
+	case TokenID::LesserOrEqual:
+		out << " ( <= ) ";
+		break;
+
+	case TokenID::BitwiseAnd:
+		out << " ( & ) ";
+		break;
+
+	case TokenID::LogicalAnd:
+		out << " ( && ) ";
+		break;
+
+	case TokenID::BitwiseOr:
+		out << " ( | ) ";
+		break;
+
+	case TokenID::LogicalOr:
+		out << " ( || ) ";
+		break;
+
+	case TokenID::BitwiseNot:
+		out << " ( ~ ) ";
+		break;
+
+	case TokenID::LogicalNot:
+		out << " ( ! ) ";
+		break;
+
+	case TokenID::ParenOpen:
+		out << " ( ( ) ";
+		break;
+
+	case TokenID::ParenClose:
+		out << " ( ) ) ";
+		break;
+
+	case TokenID::BlockOpen:
+		out << " ( { ) ";
+		break;
+
+	case TokenID::BlockClose:
+		out << " ( } ) ";
+		break;
+
+	case TokenID::QuoteOpen:
+	case TokenID::QuoteClose:
+		out << " ( \" ) ";
+		break;
+
+	case TokenID::Comment:
+		out << " ( # ) ";
+		break;
+
+	case TokenID::CommentBlockOpen:
+		out << " ( #{ ) ";
+		break;
+
+	case TokenID::CommentBlockClose:
+		out << " ( }# ) ";
+		break;
+
+	case TokenID::Period:
+		out << " ( . ) ";
+		break;
+
+	case TokenID::Comma:
+		out << " ( , ) ";
+		break;
+
+	case TokenID::Colon:
+		out << " ( : ) ";
+		break;
+
+	case TokenID::SemiColon:
+		out << " ( ; ) ";
+		break;
+
+	case TokenID::EndOfFile:
+		break;
+	}
+
+	return out;
+}
+
+struct InternalLexer
+{
+	std::vector<Token> tokens;
+	const char *txt;
+};
+
+static void skip_whitespace( InternalLexer *lexer )
+{
+	char c = *lexer->txt;
+
+	while ( c != '\0' )
+	{
+		switch ( c )
+		{
+		case '\t':
+		case '\n':
+		case '\v':
+		case '\f':
+		case '\r':
+		case ' ':
+			break;
+
+		default:
+			return;
+		}
+
+		c = *(++lexer->txt);
+	}
+}
+
+static bool is_digit( char c )
+{
+	switch ( c )
+	{
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		return true;
+	}
+	return false;
+}
+
+constexpr bool IdentiferCharLUT[ 123 ] =
+{
+	false, false, false, false, false, false, false, false, false, false,
+	false, false, false, false, false, false, false, false, false, false,
+	false, false, false, false, false, false, false, false, false, false,
+	false, false, false, false, false, false, false, false, false, false,
+	false, false, false, false, false, false, false,  true,  true,  true,
+	 true,  true,  true,  true,  true,  true,  true, false, false, false,
+	false, false, false, false,  true,  true,  true,  true,  true,  true,
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
+	false, false, false, false,  true, false,  true,  true,  true,  true,
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
+	 true,  true,
+};
+
+static bool is_identifier_start( char c )
+{
+	if ( c > 122 || is_digit( c ) )
+		return false;
+	return IdentiferCharLUT[ c ];
+}
+
+static bool is_identifier( char c )
+{
+	if ( c > 122 )
+		return false;
+	return IdentiferCharLUT[ c ];
+}
+
+static Token next_token( InternalLexer *lexer )
+{
+	skip_whitespace( lexer );
+
+	char c = *lexer->txt;
+	char n;
+
+	while ( c != '\0' )
+	{
+		if ( is_identifier_start( c ) )
+		{
+			const char *start = lexer->txt;
+			int len = 0;
+
+			do
+			{
+				len += 1;
+				c = *(++lexer->txt);
+			} while ( is_identifier( c ) );
+
+			std::string identifier;
+			identifier.assign( start, len );
+
+			if ( KeywordsMap.find( identifier ) != KeywordsMap.end() )
+				return { .id = TokenID::Keyword, .valueString = identifier };
+
+			return { .id = TokenID::Identifier, .valueString = identifier };
+		}
+
+		if ( is_digit( c ) )
+		{
+			size_t len = 0;
+			int64_t value = std::stoll( lexer->txt, &len );
+			lexer->txt += len;
+			return { .id = TokenID::Number, .valueNumber = value };
+		}
+
+		switch ( c )
+		{
+		case '-':
+			lexer->txt += 1;
+			return { TokenID::Minus };
+
+		case '+':
+			lexer->txt += 1;
+			return { TokenID::Plus };
+
+		case '/':
+			c = *(++lexer->txt);
+			return { TokenID::Divide };
+
+		case '=':
+			n = *( lexer->txt + 1 );
+			if ( n == '=' )
+			{
+				lexer->txt += 2;
+				return { TokenID::Equal };
+			}
+			lexer->txt += 1;
+			return { TokenID::Assign };
+
+		case '>':
+			n = *( lexer->txt + 1 );
+			if ( n == '=' )
+			{
+				lexer->txt += 2;
+				return { TokenID::GreaterOrEqual };
+			}
+			lexer->txt += 1;
+			return { TokenID::GreaterThan };
+
+		case '<':
+			n = *( lexer->txt + 1 );
+			if ( n == '=' )
+			{
+				lexer->txt += 2;
+				return { TokenID::LesserOrEqual };
+			}
+			lexer->txt += 1;
+			return { TokenID::LesserThan };
+
+		case '&':
+			n = *( lexer->txt + 1 );
+			if ( n == '&' )
+			{
+				lexer->txt += 2;
+				return { TokenID::LogicalAnd };
+			}
+			lexer->txt += 1;
+			return { TokenID::BitwiseAnd };
+
+		case '|':
+			n = *( lexer->txt + 1 );
+			if ( n == '|' )
+			{
+				lexer->txt += 2;
+				return { TokenID::LogicalOr };
+			}
+			lexer->txt += 1;
+			return { TokenID::BitwiseOr };
+
+		case '~':
+			lexer->txt += 1;
+			return { TokenID::BitwiseNot };
+
+		case '!':
+			lexer->txt += 1;
+			return { TokenID::LogicalNot };
+
+		case '(':
+			lexer->txt += 1;
+			return { TokenID::ParenOpen };
+
+		case ')':
+			lexer->txt += 1;
+			return { TokenID::ParenClose };
+
+		case '{':
+			lexer->txt += 1;
+			return { TokenID::BlockOpen };
+
+		case '}':
+			lexer->txt += 1;
+			return { TokenID::BlockClose };
+
+		case '.':
+			lexer->txt += 1;
+			return { TokenID::Period };
+
+		case ',':
+			lexer->txt += 1;
+			return { TokenID::Comma };
+
+		case ':,':
+			lexer->txt += 1;
+			return { TokenID::Colon };
+
+		case ';':
+			lexer->txt += 1;
+			return { TokenID::SemiColon };
+
+		case '"':
+			break;
+
+		case '#':
+			n = *( lexer->txt + 1 );
+			if ( n == '{')
+			{
+				lexer->txt += 2;
+
+				while ( true )
+				{
+					c = *(++lexer->txt);
+					if ( c == '}' && *( lexer->txt + 1 ) == '#' )
+					{
+						lexer->txt += 1;
+						break;
+					}
+					if ( c == '\0' )
+						return { TokenID::EndOfFile };
+				}
+			}
+			else
+			{
+				do
+				{
+					c = *(++lexer->txt);
+					if ( c == '\0' )
+						return { TokenID::EndOfFile };
+				} while ( c != '\n' );
+			}
+		}
+
+		c = *(++lexer->txt);
+	}
+
+	return { TokenID::EndOfFile };
+}
+
+std::vector<Token> Lexer::run( std::string data )
+{
+	InternalLexer lex;
+
+	lex.tokens.reserve( 2048 );
+	lex.txt = data.c_str();
+
+	Token token;
+
+	do
+	{
+		token = next_token( &lex );
+		lex.tokens.push_back( token );
+
+	} while ( token.id != TokenID::EndOfFile );
+
+	return lex.tokens;
+}

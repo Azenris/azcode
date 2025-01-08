@@ -1,0 +1,17 @@
+
+################################################################################
+# GITIGNORE FILE
+################################################################################
+
+desktop.ini
+
+# build data / generated data / etc...
+[Tt][Ee][Mm][Pp]/
+
+build
+final
+input.txt
+
+# vs cache data
+tools/debug/.vs/
+tools/debug/enc_temp_folder/
