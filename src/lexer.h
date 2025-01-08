@@ -31,6 +31,7 @@ enum class TokenID
 	Minus,
 	Plus,
 	Divide,
+	DivideAssign,
 	Assign,
 	Equal,
 	GreaterThan,

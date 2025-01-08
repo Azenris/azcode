@@ -1,0 +1,37 @@
+
+/*this is a comment block!
+	false, true
+	switch, case, fallthrough
+	continue
+	do, while, for
+	if, else
+	goto
+	nodiscard
+	return
+	exit
+	nullptr
+	undefined
+	sizeof, typeof
+	static_assert, static_cast
+	using
+
+/* this is a block inside another block */
+
+nothing to see here*/
+
+//this is a comment line!
+
+test=5
+testTwo = "this is a quote in a string \"to be or not to be\". See!"
+
+//someMap.key = 2
+//someMap[ $5 ] = 4
+
+//isAllowed = false
+//thing = ( test + 5 ) - 2
+//answer = test + testTwo
+
+//print "This is the answer: {}", answer
+//print-host "This shows the snswer *2 for the host only... {}", answer * 2
+
+//return answer

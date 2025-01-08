@@ -63,6 +63,10 @@ constexpr static TokenType TokenTypes[] =
 		.name = "Divide",
 	},
 	{
+		.id = TokenID::DivideAssign,
+		.name = "DivideAssign",
+	},
+	{
 		.id = TokenID::Assign,
 		.name = "Assign",
 	},
@@ -325,15 +329,15 @@ constexpr bool IdentiferCharLUT[ 123 ] =
 	false, false, false, false, false, false, false, false, false, false,
 	false, false, false, false, false, false, false, false, false, false,
 	false, false, false, false, false, false, false, false, false, false,
-	false, false, false, false, false, false, false,  true,  true,  true,
-	 true,  true,  true,  true,  true,  true,  true, false, false, false,
-	false, false, false, false,  true,  true,  true,  true,  true,  true,
+	false, false, false, false, false, false, false, false,  true,  true,
+	 true,  true,  true,  true,  true,  true,  true,  true, false, false,
+	false, false, false, false, false,  true,  true,  true,  true,  true,
 	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
 	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
-	false, false, false, false,  true, false,  true,  true,  true,  true,
+	 true, false, false, false, false,  true, false,  true,  true,  true,
 	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
 	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
-	 true,  true,
+	 true,  true,  true,
 };
 
 static bool is_identifier_start( char c )
@@ -396,10 +400,6 @@ static Token next_token( InternalLexer *lexer )
 		case '+':
 			lexer->txt += 1;
 			return { TokenID::Plus };
-
-		case '/':
-			c = *(++lexer->txt);
-			return { TokenID::Divide };
 
 		case '=':
 			n = *( lexer->txt + 1 );
@@ -483,7 +483,7 @@ static Token next_token( InternalLexer *lexer )
 			lexer->txt += 1;
 			return { TokenID::Comma };
 
-		case ':,':
+		case ':':
 			lexer->txt += 1;
 			return { TokenID::Colon };
 
@@ -528,32 +528,58 @@ static Token next_token( InternalLexer *lexer )
 			}
 			break;
 
-		case '#':
-			n = *( lexer->txt + 1 );
-			if ( n == '{')
+		case '/':
 			{
-				lexer->txt += 2;
-
-				while ( true )
+				switch ( *( lexer->txt + 1 ) )
 				{
-					c = *(++lexer->txt);
-					if ( c == '}' && *( lexer->txt + 1 ) == '#' )
+				case '*':
 					{
-						lexer->txt += 1;
-						break;
+						lexer->txt += 2;
+
+						int level = 1;
+
+						while ( level > 0 )
+						{
+							while ( true )
+							{
+								c = *(++lexer->txt);
+								if ( c == '\0' )
+									return { TokenID::EndOfFile };
+								n = *( lexer->txt + 1 );
+								if ( c == '/' && n == '*' )
+								{
+									lexer->txt += 2;
+									level += 1;
+									break;
+								}
+								else if ( c == '*' && n == '/' )
+								{
+									lexer->txt += 2;
+									level -= 1;
+									break;
+								}
+							}
+						}
 					}
-					if ( c == '\0' )
-						return { TokenID::EndOfFile };
+					break;
+
+				case '/':
+					do
+					{
+						c = *(++lexer->txt);
+						if ( c == '\0' )
+							return { TokenID::EndOfFile };
+					} while ( c != '\n' );
+					break;
+
+				case '=':
+					lexer->txt += 2;
+					return { TokenID::DivideAssign };
+
+				default:
+					lexer->txt += 1;
+					return { TokenID::Divide };
 				}
-			}
-			else
-			{
-				do
-				{
-					c = *(++lexer->txt);
-					if ( c == '\0' )
-						return { TokenID::EndOfFile };
-				} while ( c != '\n' );
 			}
 		}
 
