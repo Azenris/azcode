@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "lexer.h"
+#include "result_code.h"
 
 struct AbstractSyntaxTree
 {

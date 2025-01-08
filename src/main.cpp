@@ -6,6 +6,7 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "result_code.h"
 
 struct Interpreter
 {
@@ -22,7 +23,7 @@ int main( int argc, char *argv[] )
 	if ( argc < 2 )
 	{
 		std::cerr << "Missing file to run." << std::endl;
-		return -1;
+		return RESULT_CODE_NO_FILE_INPUT_TO_PROCESS;
 	}
 
 	std::string filename = argv[ 1 ];
@@ -34,7 +35,7 @@ int main( int argc, char *argv[] )
 		if ( !file.is_open() )
 		{
 			std::cerr << "Unable to open file: " << filename << std::endl;
-			return -2;
+			return RESULT_CODE_FAILED_TO_OPEN_INPUT_FILE;
 		}
 
 		std::stringstream stream;
@@ -44,9 +45,9 @@ int main( int argc, char *argv[] )
 
 	std::vector<Token> tokens = Lexer{}.run( std::move( data ) );
 	AbstractSyntaxTree ast = Parser{}.run( std::move( tokens ) );
-
 	//return Interpreter{}.run( std::move( ast ) );
-	return 0;
+
+	return RESULT_CODE_SUCCESS;
 }
 
 // -- Unity Build --

@@ -5,6 +5,8 @@
 #include <vector>
 #include <iosfwd>
 
+#include "result_code.h"
+
 enum class KeywordID
 {
 	False,
@@ -24,6 +26,7 @@ enum class TokenID
 {
 	Keyword,
 	Identifier,
+	StringLiteral,
 	Number,
 	Minus,
 	Plus,
@@ -44,11 +47,6 @@ enum class TokenID
 	ParenClose,
 	BlockOpen,
 	BlockClose,
-	QuoteOpen,
-	QuoteClose,
-	Comment,
-	CommentBlockOpen,
-	CommentBlockClose,
 	Period,
 	Comma,
 	Colon,

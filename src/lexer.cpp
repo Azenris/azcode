@@ -43,6 +43,10 @@ constexpr static TokenType TokenTypes[] =
 		.name = "Identifier",
 	},
 	{
+		.id = TokenID::StringLiteral,
+		.name = "StringLiteral",
+	},
+	{
 		.id = TokenID::Number,
 		.name = "Number",
 	},
@@ -123,26 +127,6 @@ constexpr static TokenType TokenTypes[] =
 		.name = "BlockClose",
 	},
 	{
-		.id = TokenID::QuoteOpen,
-		.name = "QuoteOpen",
-	},
-	{
-		.id = TokenID::QuoteClose,
-		.name = "QuoteClose",
-	},
-	{
-		.id = TokenID::Comment,
-		.name = "Comment",
-	},
-	{
-		.id = TokenID::CommentBlockOpen,
-		.name = "CommentBlockOpen",
-	},
-	{
-		.id = TokenID::CommentBlockClose,
-		.name = "CommentBlockClose",
-	},
-	{
 		.id = TokenID::Period,
 		.name = "Period",
 	},
@@ -175,6 +159,10 @@ std::ostream & operator << ( std::ostream &out, const Token &token )
 		break;
 
 	case TokenID::Identifier:
+		out << " ( " << token.valueString << " ) ";
+		break;
+
+	case TokenID::StringLiteral:
 		out << " ( " << token.valueString << " ) ";
 		break;
 
@@ -258,23 +246,6 @@ std::ostream & operator << ( std::ostream &out, const Token &token )
 		out << " ( } ) ";
 		break;
 
-	case TokenID::QuoteOpen:
-	case TokenID::QuoteClose:
-		out << " ( \" ) ";
-		break;
-
-	case TokenID::Comment:
-		out << " ( # ) ";
-		break;
-
-	case TokenID::CommentBlockOpen:
-		out << " ( #{ ) ";
-		break;
-
-	case TokenID::CommentBlockClose:
-		out << " ( }# ) ";
-		break;
-
 	case TokenID::Period:
 		out << " ( . ) ";
 		break;
@@ -302,6 +273,7 @@ struct InternalLexer
 {
 	std::vector<Token> tokens;
 	const char *txt;
+	std::string stringValue;
 };
 
 static void skip_whitespace( InternalLexer *lexer )
@@ -383,6 +355,7 @@ static Token next_token( InternalLexer *lexer )
 	skip_whitespace( lexer );
 
 	char c = *lexer->txt;
+	char p;
 	char n;
 
 	while ( c != '\0' )
@@ -390,7 +363,7 @@ static Token next_token( InternalLexer *lexer )
 		if ( is_identifier_start( c ) )
 		{
 			const char *start = lexer->txt;
-			int len = 0;
+			size_t len = 0;
 
 			do
 			{
@@ -398,13 +371,12 @@ static Token next_token( InternalLexer *lexer )
 				c = *(++lexer->txt);
 			} while ( is_identifier( c ) );
 
-			std::string identifier;
-			identifier.assign( start, len );
+			lexer->stringValue.assign( start, len );
 
-			if ( KeywordsMap.find( identifier ) != KeywordsMap.end() )
-				return { .id = TokenID::Keyword, .valueString = identifier };
+			if ( KeywordsMap.find( lexer->stringValue ) != KeywordsMap.end() )
+				return { .id = TokenID::Keyword, .valueString = lexer->stringValue };
 
-			return { .id = TokenID::Identifier, .valueString = identifier };
+			return { .id = TokenID::Identifier, .valueString = lexer->stringValue };
 		}
 
 		if ( is_digit( c ) )
@@ -520,6 +492,40 @@ static Token next_token( InternalLexer *lexer )
 			return { TokenID::SemiColon };
 
 		case '"':
+			{
+				const char *start = ++lexer->txt;
+				size_t len = 0;
+
+				lexer->stringValue.clear();
+
+				do
+				{
+					p = c;
+					len += 1;
+					c = *(++lexer->txt);
+					if ( c == '\0' )
+					{
+						std::cerr << "String literal not closed." << std::endl;
+						exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
+					}
+
+					if ( p == '\\' && c == '"' )
+					{
+						lexer->stringValue.append( start, len - 1 );
+						lexer->stringValue.append( "\"" );
+						start = ++lexer->txt;
+						len = 0;
+						c = *start;
+					}
+
+				} while ( c != '"' );
+
+				lexer->stringValue.append( start, len );
+
+				lexer->txt += 1;
+
+				return { .id = TokenID::StringLiteral, .valueString = lexer->stringValue };
+			}
 			break;
 
 		case '#':
@@ -561,8 +567,9 @@ std::vector<Token> Lexer::run( std::string data )
 {
 	InternalLexer lex;
 
-	lex.tokens.reserve( 2048 );
+	lex.tokens.reserve( 65536 );
 	lex.txt = data.c_str();
+	lex.stringValue.reserve( 512 );
 
 	Token token;
 
