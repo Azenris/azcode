@@ -55,8 +55,16 @@ constexpr static TokenType TokenTypes[] =
 		.name = "Minus",
 	},
 	{
+		.id = TokenID::MinusAssign,
+		.name = "MinusAssign",
+	},
+	{
 		.id = TokenID::Plus,
 		.name = "Plus",
+	},
+	{
+		.id = TokenID::PlusAssign,
+		.name = "PlusAssign",
 	},
 	{
 		.id = TokenID::Divide,
@@ -65,6 +73,14 @@ constexpr static TokenType TokenTypes[] =
 	{
 		.id = TokenID::DivideAssign,
 		.name = "DivideAssign",
+	},
+	{
+		.id = TokenID::Asterisk,
+		.name = "Asterisk",
+	},
+	{
+		.id = TokenID::AsteriskAssign,
+		.name = "AsteriskAssign",
 	},
 	{
 		.id = TokenID::Assign,
@@ -147,6 +163,10 @@ constexpr static TokenType TokenTypes[] =
 		.name = "SemiColon",
 	},
 	{
+		.id = TokenID::NewLine,
+		.name = "NewLine",
+	},
+	{
 		.id = TokenID::EndOfFile,
 		.name = "EndOfFile",
 	},
@@ -178,12 +198,32 @@ std::ostream & operator << ( std::ostream &out, const Token &token )
 		out << " ( - ) ";
 		break;
 
+	case TokenID::MinusAssign:
+		out << " ( -= ) ";
+		break;
+
 	case TokenID::Plus:
 		out << " ( + ) ";
 		break;
 
+	case TokenID::PlusAssign:
+		out << " ( ++ ) ";
+		break;
+
 	case TokenID::Divide:
 		out << " ( / ) ";
+		break;
+
+	case TokenID::DivideAssign:
+		out << " ( /= ) ";
+		break;
+
+	case TokenID::Asterisk:
+		out << " ( * ) ";
+		break;
+
+	case TokenID::AsteriskAssign:
+		out << " ( *= ) ";
 		break;
 
 	case TokenID::Assign:
@@ -266,6 +306,9 @@ std::ostream & operator << ( std::ostream &out, const Token &token )
 		out << " ( ; ) ";
 		break;
 
+	case TokenID::NewLine:
+		break;
+
 	case TokenID::EndOfFile:
 		break;
 	}
@@ -280,6 +323,7 @@ struct InternalLexer
 	std::string stringValue;
 };
 
+// Note: \n is not skipped, it is used to break statements up
 static void skip_whitespace( InternalLexer *lexer )
 {
 	char c = *lexer->txt;
@@ -289,7 +333,6 @@ static void skip_whitespace( InternalLexer *lexer )
 		switch ( c )
 		{
 		case '\t':
-		case '\n':
 		case '\v':
 		case '\f':
 		case '\r':
@@ -354,13 +397,11 @@ static bool is_identifier( char c )
 	return IdentiferCharLUT[ c ];
 }
 
-static Token next_token( InternalLexer *lexer )
+static Token next_token( InternalLexer *lexer, Token *lastToken )
 {
 	skip_whitespace( lexer );
 
 	char c = *lexer->txt;
-	char p;
-	char n;
 
 	while ( c != '\0' )
 	{
@@ -394,16 +435,43 @@ static Token next_token( InternalLexer *lexer )
 		switch ( c )
 		{
 		case '-':
-			lexer->txt += 1;
-			return { TokenID::Minus };
+			if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { TokenID::MinusAssign };
+			}
+			else
+			{
+				lexer->txt += 1;
+				return { TokenID::Minus };
+			}
 
 		case '+':
-			lexer->txt += 1;
-			return { TokenID::Plus };
+			if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { TokenID::PlusAssign };
+			}
+			else
+			{
+				lexer->txt += 1;
+				return { TokenID::Plus };
+			}
+
+		case '*':
+			if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { TokenID::AsteriskAssign };
+			}
+			else
+			{
+				lexer->txt += 1;
+				return { TokenID::Asterisk };
+			}
 
 		case '=':
-			n = *( lexer->txt + 1 );
-			if ( n == '=' )
+			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
 				return { TokenID::Equal };
@@ -412,8 +480,7 @@ static Token next_token( InternalLexer *lexer )
 			return { TokenID::Assign };
 
 		case '>':
-			n = *( lexer->txt + 1 );
-			if ( n == '=' )
+			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
 				return { TokenID::GreaterOrEqual };
@@ -422,8 +489,7 @@ static Token next_token( InternalLexer *lexer )
 			return { TokenID::GreaterThan };
 
 		case '<':
-			n = *( lexer->txt + 1 );
-			if ( n == '=' )
+			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
 				return { TokenID::LesserOrEqual };
@@ -432,8 +498,7 @@ static Token next_token( InternalLexer *lexer )
 			return { TokenID::LesserThan };
 
 		case '&':
-			n = *( lexer->txt + 1 );
-			if ( n == '&' )
+			if ( *( lexer->txt + 1 ) == '&' )
 			{
 				lexer->txt += 2;
 				return { TokenID::LogicalAnd };
@@ -442,8 +507,7 @@ static Token next_token( InternalLexer *lexer )
 			return { TokenID::BitwiseAnd };
 
 		case '|':
-			n = *( lexer->txt + 1 );
-			if ( n == '|' )
+			if ( *( lexer->txt + 1 ) == '|' )
 			{
 				lexer->txt += 2;
 				return { TokenID::LogicalOr };
@@ -491,10 +555,19 @@ static Token next_token( InternalLexer *lexer )
 			lexer->txt += 1;
 			return { TokenID::SemiColon };
 
+		case '\n':
+			if ( lastToken->id != TokenID::NewLine && lastToken->id != TokenID::EndOfFile )
+			{
+				lexer->txt += 1;
+				return { TokenID::NewLine };
+			}
+			break;
+
 		case '"':
 			{
 				const char *start = ++lexer->txt;
 				size_t len = 0;
+				char p;
 
 				lexer->stringValue.clear();
 
@@ -537,6 +610,7 @@ static Token next_token( InternalLexer *lexer )
 						lexer->txt += 2;
 
 						int level = 1;
+						char n;
 
 						while ( level > 0 )
 						{
@@ -598,10 +672,11 @@ std::vector<Token> Lexer::run( std::string data )
 	lex.stringValue.reserve( 512 );
 
 	Token token;
+	token.id = TokenID::EndOfFile;
 
 	do
 	{
-		token = next_token( &lex );
+		token = next_token( &lex, &token );
 		lex.tokens.push_back( token );
 
 	} while ( token.id != TokenID::EndOfFile );

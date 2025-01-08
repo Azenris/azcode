@@ -14,6 +14,7 @@
 	sizeof, typeof
 	static_assert, static_cast
 	using
+	include
 
 /* this is a block inside another block */
 
@@ -21,7 +22,8 @@ nothing to see here*/
 
 //this is a comment line!
 
-test=5
+test1 = ( 5 )
+test2=5
 testTwo = "this is a quote in a string \"to be or not to be\". See!"
 
 //someMap.key = 2

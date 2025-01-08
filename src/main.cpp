@@ -43,9 +43,10 @@ int main( int argc, char *argv[] )
 		data = stream.str();
 	}
 
-	std::vector<Token> tokens = Lexer{}.run( std::move( data ) );
-	AbstractSyntaxTree ast = Parser{}.run( std::move( tokens ) );
-	//return Interpreter{}.run( std::move( ast ) );
+	Parser parser;
+	parser.run( Lexer{}.run( std::move( data ) ) );
+
+	//return Interpreter{}.run( &parser );
 
 	return RESULT_CODE_SUCCESS;
 }

@@ -29,9 +29,13 @@ enum class TokenID
 	StringLiteral,
 	Number,
 	Minus,
+	MinusAssign,
 	Plus,
+	PlusAssign,
 	Divide,
 	DivideAssign,
+	Asterisk,
+	AsteriskAssign,
 	Assign,
 	Equal,
 	GreaterThan,
@@ -52,6 +56,7 @@ enum class TokenID
 	Comma,
 	Colon,
 	SemiColon,
+	NewLine,
 	EndOfFile,
 };
 
