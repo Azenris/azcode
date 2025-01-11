@@ -10,21 +10,21 @@ enum class NodeType
 {
 	Block,
 	EndStatement,
-	Assignment,
+	Identifier,
 	StringLiteral,
 	Number,
+	Assignment,
+	Operation,
+	FunctionCall,
 };
 
 struct Node
 {
 	NodeType type;
 	Token *token;
-	Node *value;
-	union
-	{
-		int64_t valueInt;
-		const char *valueString;
-	};
+	Node *left;
+	Node *right;
+	Value value;
 	std::vector<Node*> children;
 };
 
@@ -34,6 +34,6 @@ struct Parser
 
 	std::vector<Token> tokens;
 	Token *token;
-	int tokenIndex;
+	i32 tokenIndex;
 	Node *root;
 };

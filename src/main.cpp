@@ -4,19 +4,34 @@
 #include <sstream>
 #include <string>
 
+using i8  = int8_t;
+using i16 = int16_t;
+using i32 = int32_t;
+using i64 = int64_t;
+using u8  = uint8_t;
+using u16 = uint16_t;
+using u32 = uint32_t;
+using u64 = uint64_t;
+using f32 = float;
+using f64 = double;
+
+static_assert( sizeof( i8 ) == 1 );
+static_assert( sizeof( i16 ) == 2 );
+static_assert( sizeof( i32 ) == 4 );
+static_assert( sizeof( i64 ) == 8 );
+static_assert( sizeof( u8 ) == 1 );
+static_assert( sizeof( u16 ) == 2 );
+static_assert( sizeof( u32 ) == 4 );
+static_assert( sizeof( u64 ) == 8 );
+static_assert( sizeof( f32 ) == 4 );
+static_assert( sizeof( f64 ) == 8 );
+
+#include "value.h"
+#include "token.h"
 #include "lexer.h"
 #include "parser.h"
+#include "interpreter.h"
 #include "result_code.h"
-
-struct Interpreter
-{
-	int run()
-	{
-		
-
-		return 0;
-	}
-};
 
 int main( int argc, char *argv[] )
 {
@@ -43,14 +58,18 @@ int main( int argc, char *argv[] )
 		data = stream.str();
 	}
 
+	Lexer lexer;
 	Parser parser;
-	parser.run( Lexer{}.run( std::move( data ) ) );
+	Interpreter interpreter;
 
-	//return Interpreter{}.run( &parser );
-
-	return RESULT_CODE_SUCCESS;
+	lexer.run( std::move( data ) );
+	parser.run( std::move( lexer.tokens ) );
+	return interpreter.run( parser.root ).valueI32;
 }
 
 // -- Unity Build --
+#include "value.cpp"
+#include "token.cpp"
 #include "lexer.cpp"
 #include "parser.cpp"
+#include "interpreter.cpp"

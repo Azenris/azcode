@@ -22,9 +22,14 @@ nothing to see here*/
 
 //this is a comment line!
 
-test1 = ( 5 )
+test1 = (5+2)
 test2=5
 testTwo = "this is a quote in a string \"to be or not to be\". See!"
+
+//print(test1)
+
+
+//print("v = {}", test1)
 
 //someMap.key = 2
 //someMap[ $5 ] = 4
