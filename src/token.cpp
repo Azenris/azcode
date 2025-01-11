@@ -16,6 +16,7 @@ std::ostream & operator << ( std::ostream &out, const KeywordID &keywordID )
 
 static std::unordered_map<std::string, KeywordID> KeywordsMap =
 {
+	{ "return", KeywordID::Return },
 	{ "false", KeywordID::False },
 	{ "true", KeywordID::True },
 };

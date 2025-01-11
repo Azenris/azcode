@@ -16,6 +16,7 @@ enum class NodeType
 	Assignment,
 	Operation,
 	FunctionCall,
+	Return,
 };
 
 struct Node

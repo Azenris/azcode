@@ -94,21 +94,28 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 				c = *(++lexer->txt);
 			} while ( is_identifier( c ) );
 
-			lexer->stringValue.assign( start, len );
+			lexer->str.assign( start, len );
 
-			const KeywordType *kw = get_keyword( lexer->stringValue );
+			const KeywordType *kw = get_keyword( lexer->str );
 			if ( kw )
-				return { .id = TokenID::Keyword, .value = static_cast<i32>( kw->id ) };
+				return { .id = TokenID::Keyword, .value = { static_cast<i32>( kw->id ), lexer->str.c_str() } };
 
-			return { .id = TokenID::Identifier, .value = lexer->stringValue };
+			return { .id = TokenID::Identifier, .value = lexer->str };
 		}
 
 		if ( is_digit( c ) )
 		{
-			u64 len = 0;
-			i64 value = std::stoll( lexer->txt, &len );
-			lexer->txt += len;
-			return { .id = TokenID::Number, .value = value };
+			i64 number;
+			char *end;
+
+			if ( to_int( &number, lexer->txt, &end ) == ToIntResult::Success )
+			{
+				lexer->txt = end;
+				return { .id = TokenID::Number, .value = number };
+			}
+
+			std::cerr << "[Lexer] Could not convert value to int ( " << lexer->txt << " )." << std::endl;
+			exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
 		}
 
 		switch ( c )
@@ -250,7 +257,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 				// TODO : do in a loop and concat any strings place next to each other
 
-				lexer->stringValue.clear();
+				lexer->str.clear();
 
 				do
 				{
@@ -259,14 +266,14 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 					c = *(++lexer->txt);
 					if ( c == '\0' )
 					{
-						std::cerr << "String literal not closed." << std::endl;
+						std::cerr << "[Lexer] String literal not closed." << std::endl;
 						exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
 					}
 
 					if ( p == '\\' && c == '"' )
 					{
-						lexer->stringValue.append( start, len - 1 );
-						lexer->stringValue.append( "\"" );
+						lexer->str.append( start, len - 1 );
+						lexer->str.append( "\"" );
 						start = ++lexer->txt;
 						len = 0;
 						c = *start;
@@ -274,11 +281,11 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 				} while ( c != '"' );
 
-				lexer->stringValue.append( start, len );
+				lexer->str.append( start, len );
 
 				lexer->txt += 1;
 
-				return { .id = TokenID::StringLiteral, .value = lexer->stringValue };
+				return { .id = TokenID::StringLiteral, .value = lexer->str };
 			}
 			break;
 
@@ -349,7 +356,7 @@ void Lexer::run( std::string data )
 	tokens.clear();
 	tokens.reserve( 65536 );
 	txt = data.c_str();
-	stringValue.reserve( 512 );
+	str.reserve( 512 );
 
 	Token token;
 	token.id = TokenID::EndOfFile;
@@ -362,5 +369,5 @@ void Lexer::run( std::string data )
 	} while ( token.id != TokenID::EndOfFile );
 
 	txt = nullptr;
-	stringValue.clear();
+	str.clear();
 }

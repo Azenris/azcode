@@ -63,8 +63,12 @@ int main( int argc, char *argv[] )
 	Interpreter interpreter;
 
 	lexer.run( std::move( data ) );
+	std::cout << "lexer finished." << std::endl;
 	parser.run( std::move( lexer.tokens ) );
-	return interpreter.run( parser.root ).valueI32;
+	std::cout << "parser finished." << std::endl;
+	i32 ret = interpreter.run( parser.root ).valueI32;
+	std::cout << "interpreter finished (" << ret << ")." << std::endl;
+	return ret;
 }
 
 // -- Unity Build --

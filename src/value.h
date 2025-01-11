@@ -10,7 +10,12 @@ enum class ValueType
 	NumberI32,
 	NumberI64,
 	StringLiteral,
+	KeywordID,
 };
+
+constexpr i32 TypeShift = 16;
+
+#define TYPE_PAIR( t0, t1 ) ( ( static_cast<i32>( t0 ) << TypeShift ) | static_cast<i32>( t1 ) )
 
 struct Value
 {
@@ -48,6 +53,13 @@ struct Value
 	{
 	}
 
+	Value( i32 val, const char *str )
+		: type( ValueType::KeywordID )
+		, valueI32( val )
+		, valueString( str )
+	{
+	}
+
 	ValueType type;
 
 	union
@@ -60,3 +72,23 @@ struct Value
 };
 
 std::ostream & operator << ( std::ostream &out, const Value &value );
+
+Value operator - ( const Value &lhs, const Value &rhs );
+Value & operator -= ( Value &lhs, const Value &rhs );
+Value operator + ( const Value &lhs, const Value &rhs );
+Value & operator += ( Value &lhs, const Value &rhs );
+Value operator / ( const Value &lhs, const Value &rhs );
+Value & operator /= ( Value &lhs, const Value &rhs );
+Value operator * ( const Value &lhs, const Value &rhs );
+Value & operator *= ( Value &lhs, const Value &rhs );
+
+enum ToIntResult
+{
+	Success,
+	Failed,
+	Overflow,
+	Underflow,
+};
+
+ToIntResult to_int( i64 *value, char const *str, char **endOut = nullptr, i32 base = 0 );
+ToIntResult to_int( u64 *value, char const *str, char **endOut = nullptr, i32 base = 0 );

@@ -10,5 +10,5 @@ struct Lexer
 
 	std::vector<Token> tokens;
 	const char *txt;
-	std::string stringValue;
+	std::string str;
 };

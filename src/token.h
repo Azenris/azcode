@@ -7,6 +7,7 @@
 
 enum class KeywordID
 {
+	Return,
 	False,
 	True,
 };
@@ -78,6 +79,10 @@ std::ostream & operator << ( std::ostream &out, const TokenID &TokenID );
 
 constexpr KeywordType Keywords[] =
 {
+	{
+		.id = KeywordID::Return,
+		.name = "Return",
+	},
 	{
 		.id = KeywordID::False,
 		.name = "False",

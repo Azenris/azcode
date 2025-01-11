@@ -1,13 +1,13 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "parser.h"
 
 struct Interpreter
 {
-	Value run( Node *node );
+	std::unordered_map<std::string, Value> data;
 
-	Value process_node( Node *node );
-	Value &get_or_create_variable( Node *node );
-	Value *get_variable( Node *node );
+	Value run( Node *node );
 };
