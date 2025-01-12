@@ -44,10 +44,38 @@ static i32 get_operator_precedence( TokenID tokenID )
 	case TokenID::Plus: return 1;
 	case TokenID::Divide: return 0;
 	case TokenID::Asterisk: return 0;
+	case TokenID::Amp: return 2;
+	case TokenID::Pipe: return 4;
+	case TokenID::Hat: return 3;
+	case TokenID::Percent: return 0;
 	}
 	std::cerr << "[Parser] Unexpected operator precendence token( " << tokenID << " )." << std::endl;
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
+
+// precendence
+// 5 * 1 + 1
+//
+// evals as 10
+// 5 * ( 1 + 1 )
+// -------------
+//    |
+//   op*
+//  /   \
+// 5     op+
+//      /   \
+//     1     1
+// -------------
+// but wanted:
+// evals as 6
+// (5 * 1 ) + 1
+//
+//       |
+//      op+
+//     /   \
+//   op*    1
+//  /   \
+// 5     1
 
 static Node *parser_parse_operator( Parser *parser, Node *node )
 {
@@ -57,6 +85,10 @@ static Node *parser_parse_operator( Parser *parser, Node *node )
 	case TokenID::Plus:
 	case TokenID::Divide:
 	case TokenID::Asterisk:
+	case TokenID::Amp:
+	case TokenID::Pipe:
+	case TokenID::Hat:
+	case TokenID::Percent:
 		{
 			Token *token = parser_consume( parser, parser->token->id );
 			Node *op = new_node( NodeType::Operation, token );
@@ -161,6 +193,10 @@ static Node *parser_parse_identifier( Parser *parser )
 	case TokenID::PlusAssign:
 	case TokenID::DivideAssign:
 	case TokenID::AsteriskAssign:
+	case TokenID::AmpAssign:
+	case TokenID::PipeAssign:
+	case TokenID::HatAssign:
+	case TokenID::PercentAssign:
 		{
 			parser_consume( parser, parser->token->id );
 			Node *assignment = new_node( NodeType::Assignment, parser->token );

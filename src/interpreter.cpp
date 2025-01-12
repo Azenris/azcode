@@ -47,10 +47,18 @@ Value Interpreter::run( Node *node )
 		case TokenID::Plus:				return run( node->left ) + run( node->right ); break;
 		case TokenID::Divide:			return run( node->left ) / run( node->right ); break;
 		case TokenID::Asterisk:			return run( node->left ) * run( node->right ); break;
+		case TokenID::Amp:				return run( node->left ) & run( node->right ); break;
+		case TokenID::Pipe:				return run( node->left ) | run( node->right ); break;
+		case TokenID::Hat:				return run( node->left ) ^ run( node->right ); break;
+		case TokenID::Percent:			return run( node->left ) % run( node->right ); break;
 		case TokenID::MinusAssign:		return run( node->left ) - run( node->right ); break;
 		case TokenID::PlusAssign:		return run( node->left ) + run( node->right ); break;
 		case TokenID::DivideAssign:		return run( node->left ) / run( node->right ); break;
 		case TokenID::AsteriskAssign:	return run( node->left ) - run( node->right ); break;
+		case TokenID::AmpAssign:		return run( node->left ) & run( node->right ); break;
+		case TokenID::PipeAssign:		return run( node->left ) | run( node->right ); break;
+		case TokenID::HatAssign:		return run( node->left ) ^ run( node->right ); break;
+		case TokenID::PercentAssign:	return run( node->left ) % run( node->right ); break;
 		}
 		break;
 
