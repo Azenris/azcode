@@ -198,14 +198,11 @@ static Node *parser_parse_identifier( Parser *parser )
 	case TokenID::HatAssign:
 	case TokenID::PercentAssign:
 		{
-			parser_consume( parser, parser->token->id );
-			Node *assignment = new_node( NodeType::Assignment, parser->token );
-			assignment->left = node;
-			Node *op = new_node( NodeType::Operation, parser->token );
+			token = parser_consume( parser, parser->token->id );
+			Node *op = new_node( NodeType::AssignmentOp, token );
 			op->left = node;
 			op->right = parser_parse( parser );
-			assignment->right = op;
-			return assignment;
+			return op;
 		}
 		break;
 	}

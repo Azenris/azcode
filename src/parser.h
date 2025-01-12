@@ -14,6 +14,7 @@ enum class NodeType
 	StringLiteral,
 	Number,
 	Assignment,
+	AssignmentOp,
 	Operation,
 	FunctionCall,
 	Return,
