@@ -39,7 +39,9 @@ const KeywordType *get_keyword( const std::string &keyword )
 
 std::ostream & operator << ( std::ostream &out, const Token &token )
 {
-	out << "Token: " << TokenTypes[ static_cast<i32>( token.id ) ].name;
+	const TokenType *tokenType = &TokenTypes[ static_cast<i32>( token.id ) ];
+
+	out << "Token: " << tokenType->name;
 
 	switch ( token.id )
 	{
@@ -50,123 +52,11 @@ std::ostream & operator << ( std::ostream &out, const Token &token )
 		out << " '" << token.value << "'";
 		break;
 
-	case TokenID::Minus:
-		out << " '-'";
-		break;
-
-	case TokenID::MinusAssign:
-		out << " '-='";
-		break;
-
-	case TokenID::Plus:
-		out << " '+'";
-		break;
-
-	case TokenID::PlusAssign:
-		out << " '++'";
-		break;
-
-	case TokenID::Divide:
-		out << " '/'";
-		break;
-
-	case TokenID::DivideAssign:
-		out << " '/='";
-		break;
-
-	case TokenID::Asterisk:
-		out << " '*'";
-		break;
-
-	case TokenID::AsteriskAssign:
-		out << " '*='";
-		break;
-
-	case TokenID::Assign:
-		out << " '='";
-		break;
-
-	case TokenID::Equal:
-		out << " '=='";
-		break;
-
-	case TokenID::GreaterThan:
-		out << " '>'";
-		break;
-
-	case TokenID::GreaterOrEqual:
-		out << " '>='";
-		break;
-
-	case TokenID::LesserThan:
-		out << " '<'";
-		break;
-
-	case TokenID::LesserOrEqual:
-		out << " '<='";
-		break;
-
-	case TokenID::BitwiseAnd:
-		out << " '&'";
-		break;
-
-	case TokenID::LogicalAnd:
-		out << " '&&'";
-		break;
-
-	case TokenID::BitwiseOr:
-		out << " '|'";
-		break;
-
-	case TokenID::LogicalOr:
-		out << " '||'";
-		break;
-
-	case TokenID::BitwiseNot:
-		out << " '~'";
-		break;
-
-	case TokenID::LogicalNot:
-		out << " '!'";
-		break;
-
-	case TokenID::ParenOpen:
-		out << " '('";
-		break;
-
-	case TokenID::ParenClose:
-		out << " ')'";
-		break;
-
-	case TokenID::BraceOpen:
-		out << " '{'";
-		break;
-
-	case TokenID::BraceClose:
-		out << " '}'";
-		break;
-
-	case TokenID::Period:
-		out << " '.'";
-		break;
-
-	case TokenID::Comma:
-		out << " ','";
-		break;
-
-	case TokenID::Colon:
-		out << " ':'";
-		break;
-
-	case TokenID::SemiColon:
-		out << " ';'";
-		break;
-
-	case TokenID::NewLine:
-		break;
-
 	case TokenID::EndOfFile:
 		break;
+
+	default:
+		out << " '" << tokenType->symbol << "'";
 	}
 
 	return out << " [line:" << token.line << "]";

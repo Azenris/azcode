@@ -81,6 +81,14 @@ Value operator / ( const Value &lhs, const Value &rhs );
 Value & operator /= ( Value &lhs, const Value &rhs );
 Value operator * ( const Value &lhs, const Value &rhs );
 Value & operator *= ( Value &lhs, const Value &rhs );
+Value operator & ( const Value &lhs, const Value &rhs );
+Value & operator &= ( Value &lhs, const Value &rhs );
+Value operator | ( const Value &lhs, const Value &rhs );
+Value & operator |= ( Value &lhs, const Value &rhs );
+Value operator ^ ( const Value &lhs, const Value &rhs );
+Value & operator ^= ( Value &lhs, const Value &rhs );
+Value operator % ( const Value &lhs, const Value &rhs );
+Value & operator %= ( Value &lhs, const Value &rhs );
 
 enum ToIntResult
 {

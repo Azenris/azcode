@@ -41,29 +41,14 @@ Value operator - ( const Value &lhs, const Value &rhs )
 
 	switch ( TYPE_PAIR( static_cast<i32>( lhs.type ), static_cast<i32>( rhs.type ) ) )
 	{
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):
-		return lhs.valueI32 - rhs.valueI32;
-
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):
-		return lhs.valueI32 - rhs.valueI64;
-
-	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):
-		return lhs.valueI64 - rhs.valueI64;
-
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):
-		return lhs.valueI32 - static_cast<i32>( std::stoll( rhs.valueString ) );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):
-		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) - lhs.valueI32 );
-
-	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):
-		return lhs.valueI64 - std::stoll( rhs.valueString );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):
-		return std::to_string( std::stoll( lhs.valueString ) - rhs.valueI64 );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):
-		return std::to_string( std::stoll( lhs.valueString ) - std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return lhs.valueI32 - rhs.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return lhs.valueI32 - rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return lhs.valueI64 - rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return lhs.valueI32 - static_cast<i32>( std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) - lhs.valueI32 );
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return lhs.valueI64 - std::stoll( rhs.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::to_string( std::stoll( lhs.valueString ) - rhs.valueI64 );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( lhs.valueString ) - std::stoll( rhs.valueString ) );
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
@@ -86,29 +71,14 @@ Value operator + ( const Value &lhs, const Value &rhs )
 
 	switch ( TYPE_PAIR( static_cast<i32>( lhs.type ), static_cast<i32>( rhs.type ) ) )
 	{
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):
-		return lhs.valueI32 + rhs.valueI32;
-
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):
-		return lhs.valueI32 + rhs.valueI64;
-
-	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):
-		return lhs.valueI64 + rhs.valueI64;
-
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):
-		return lhs.valueI32 + static_cast<i32>( std::stoll( rhs.valueString ) );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):
-		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) + lhs.valueI32 );
-
-	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):
-		return lhs.valueI64 + std::stoll( rhs.valueString );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):
-		return std::to_string( std::stoll( lhs.valueString ) + rhs.valueI64 );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):
-		return std::to_string( std::stoll( lhs.valueString ) + std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return lhs.valueI32 + rhs.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return lhs.valueI32 + rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return lhs.valueI64 + rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return lhs.valueI32 + static_cast<i32>( std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) + lhs.valueI32 );
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return lhs.valueI64 + std::stoll( rhs.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::to_string( std::stoll( lhs.valueString ) + rhs.valueI64 );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( lhs.valueString ) + std::stoll( rhs.valueString ) );
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
@@ -131,29 +101,14 @@ Value operator / ( const Value &lhs, const Value &rhs )
 
 	switch ( TYPE_PAIR( static_cast<i32>( lhs.type ), static_cast<i32>( rhs.type ) ) )
 	{
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):
-		return lhs.valueI32 / rhs.valueI32;
-
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):
-		return lhs.valueI32 / rhs.valueI64;
-
-	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):
-		return lhs.valueI64 / rhs.valueI64;
-
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):
-		return lhs.valueI32 / static_cast<i32>( std::stoll( rhs.valueString ) );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):
-		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) / lhs.valueI32 );
-
-	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):
-		return lhs.valueI64 / std::stoll( rhs.valueString );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):
-		return std::to_string( std::stoll( lhs.valueString ) / rhs.valueI64 );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):
-		return std::to_string( std::stoll( lhs.valueString ) / std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return lhs.valueI32 / rhs.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return lhs.valueI32 / rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return lhs.valueI64 / rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return lhs.valueI32 / static_cast<i32>( std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) / lhs.valueI32 );
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return lhs.valueI64 / std::stoll( rhs.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::to_string( std::stoll( lhs.valueString ) / rhs.valueI64 );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( lhs.valueString ) / std::stoll( rhs.valueString ) );
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
@@ -176,38 +131,143 @@ Value operator * ( const Value &lhs, const Value &rhs )
 
 	switch ( TYPE_PAIR( static_cast<i32>( lhs.type ), static_cast<i32>( rhs.type ) ) )
 	{
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):
-		return lhs.valueI32 * rhs.valueI32;
-
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):
-		return lhs.valueI32 * rhs.valueI64;
-
-	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):
-		return lhs.valueI64 * rhs.valueI64;
-
-	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):
-		return lhs.valueI32 * static_cast<i32>( std::stoll( rhs.valueString ) );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):
-		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) * lhs.valueI32 );
-
-	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):
-		return lhs.valueI64 * std::stoll( rhs.valueString );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):
-		return std::to_string( std::stoll( lhs.valueString ) * rhs.valueI64 );
-
-	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):
-		return std::to_string( std::stoll( lhs.valueString ) * std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return lhs.valueI32 * rhs.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return lhs.valueI32 * rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return lhs.valueI64 * rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return lhs.valueI32 * static_cast<i32>( std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) * lhs.valueI32 );
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return lhs.valueI64 * std::stoll( rhs.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::to_string( std::stoll( lhs.valueString ) * rhs.valueI64 );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( lhs.valueString ) * std::stoll( rhs.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << static_cast<i32>( lhs.type ) << ", " << static_cast<i32>( lhs.type ) << " )" << std::endl;
+	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
 	return nullptr;
 }
 
 Value & operator *= ( Value &lhs, const Value &rhs )
 {
 	lhs = lhs * rhs;
+	return lhs;
+}
+
+Value operator & ( const Value &lhs, const Value &rhs )
+{
+	if ( lhs.type == ValueType::Undefined || rhs.type == ValueType::Undefined )
+	{
+		std::cerr << "Using '&' operator with( " << lhs.type << " & " << rhs.type << " )" << std::endl;
+		return nullptr;
+	}
+
+	switch ( TYPE_PAIR( static_cast<i32>( lhs.type ), static_cast<i32>( rhs.type ) ) )
+	{
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return lhs.valueI32 & rhs.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return lhs.valueI32 & rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return lhs.valueI64 & rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return lhs.valueI32 & static_cast<i32>( std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) & lhs.valueI32 );
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return lhs.valueI64 & std::stoll( rhs.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::to_string( std::stoll( lhs.valueString ) & rhs.valueI64 );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( lhs.valueString ) & std::stoll( rhs.valueString ) );
+	}
+
+	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
+	return nullptr;
+}
+
+Value & operator &= ( Value &lhs, const Value &rhs )
+{
+	lhs = lhs & rhs;
+	return lhs;
+}
+
+Value operator | ( const Value &lhs, const Value &rhs )
+{
+	if ( lhs.type == ValueType::Undefined || rhs.type == ValueType::Undefined )
+	{
+		std::cerr << "Using '|' operator with( " << lhs.type << " | " << rhs.type << " )" << std::endl;
+		return nullptr;
+	}
+
+	switch ( TYPE_PAIR( static_cast<i32>( lhs.type ), static_cast<i32>( rhs.type ) ) )
+	{
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return lhs.valueI32 | rhs.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return lhs.valueI32 | rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return lhs.valueI64 | rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return lhs.valueI32 | static_cast<i32>( std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) | lhs.valueI32 );
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return lhs.valueI64 | std::stoll( rhs.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::to_string( std::stoll( lhs.valueString ) | rhs.valueI64 );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( lhs.valueString ) | std::stoll( rhs.valueString ) );
+	}
+
+	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
+	return nullptr;
+}
+
+Value & operator |= ( Value &lhs, const Value &rhs )
+{
+	lhs = lhs | rhs;
+	return lhs;
+}
+
+Value operator ^ ( const Value &lhs, const Value &rhs )
+{
+	if ( lhs.type == ValueType::Undefined || rhs.type == ValueType::Undefined )
+	{
+		std::cerr << "Using '^' operator with( " << lhs.type << " ^ " << rhs.type << " )" << std::endl;
+		return nullptr;
+	}
+
+	switch ( TYPE_PAIR( static_cast<i32>( lhs.type ), static_cast<i32>( rhs.type ) ) )
+	{
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return lhs.valueI32 ^ rhs.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return lhs.valueI32 ^ rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return lhs.valueI64 ^ rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return lhs.valueI32 ^ static_cast<i32>( std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) ^ lhs.valueI32 );
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return lhs.valueI64 ^ std::stoll( rhs.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::to_string( std::stoll( lhs.valueString ) ^ rhs.valueI64 );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( lhs.valueString ) ^ std::stoll( rhs.valueString ) );
+	}
+
+	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
+	return nullptr;
+}
+
+Value & operator ^= ( Value &lhs, const Value &rhs )
+{
+	lhs = lhs ^ rhs;
+	return lhs;
+}
+
+Value operator % ( const Value &lhs, const Value &rhs )
+{
+	if ( lhs.type == ValueType::Undefined || rhs.type == ValueType::Undefined )
+	{
+		std::cerr << "Using '%' operator with( " << lhs.type << " % " << rhs.type << " )" << std::endl;
+		return nullptr;
+	}
+
+	switch ( TYPE_PAIR( static_cast<i32>( lhs.type ), static_cast<i32>( rhs.type ) ) )
+	{
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return lhs.valueI32 % rhs.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return lhs.valueI32 % rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return lhs.valueI64 % rhs.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return lhs.valueI32 % static_cast<i32>( std::stoll( rhs.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return std::to_string( static_cast<i32>( std::stoll( lhs.valueString ) ) % lhs.valueI32 );
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return lhs.valueI64 % std::stoll( rhs.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::to_string( std::stoll( lhs.valueString ) % rhs.valueI64 );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( lhs.valueString ) % std::stoll( rhs.valueString ) );
+	}
+
+	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
+	return nullptr;
+}
+
+Value & operator %= ( Value &lhs, const Value &rhs )
+{
+	lhs = lhs % rhs;
 	return lhs;
 }
 

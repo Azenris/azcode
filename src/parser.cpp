@@ -91,9 +91,9 @@ static Node *parser_parse_keyword( Parser *parser )
 			Node *node = new_node( NodeType::Return, token );
 			if ( parser->token->id == TokenID::NewLine )
 			{
-				Node *returnNodeValue = new_node( NodeType::Number, token );
+				Node *returnNodeValue = new_node( NodeType::Number, nullptr );
 				returnNodeValue->value = 0;
-				node->left = 0;
+				node->left = returnNodeValue;
 			}
 			else
 			{
@@ -200,21 +200,9 @@ static Node *parser_parse_minus( Parser *parser )
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
-static Node *parser_parse_minusassign( Parser *parser )
-{
-	std::cerr << "[Parser] Unexpected minusassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
 static Node *parser_parse_plus( Parser *parser )
 {
 	std::cerr << "[Parser] Unexpected plus token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
-static Node *parser_parse_plusassign( Parser *parser )
-{
-	std::cerr << "[Parser] Unexpected plusassign token( " << *parser->token << " )." << std::endl;
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
@@ -224,15 +212,111 @@ static Node *parser_parse_divide( Parser *parser )
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
-static Node *parser_parse_divideassign( Parser *parser )
-{
-	std::cerr << "[Parser] Unexpected divideassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
 static Node *parser_parse_asterisk( Parser *parser )
 {
 	std::cerr << "[Parser] Unexpected asterisk token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_tilde( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected tilde( token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_amp( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected amp token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_pipe( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected pipe token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_hat( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected hat token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_percent( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected percent token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_exclamation( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected exclamation token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_tildeassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected tildeassign token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_ampassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected ampassign token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_pipeassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected pipeassign token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_hatassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected hatassign token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_percentassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected percentassign token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_exclamationassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected exclamationassign token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_doubleamp( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected doubleamp token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_doublepipe( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected doublepipe token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_minusassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected minusassign token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_plusassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected plusassign token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_divideassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected divideassign token( " << *parser->token << " )." << std::endl;
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
@@ -275,42 +359,6 @@ static Node *parser_parse_lesserthan( Parser *parser )
 static Node *parser_parse_lesserorequal( Parser *parser )
 {
 	std::cerr << "[Parser] Unexpected lesserorequal token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
-static Node *parser_parse_bitwiseand( Parser *parser )
-{
-	std::cerr << "[Parser] Unexpected bitwiseand token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
-static Node *parser_parse_logicaland( Parser *parser )
-{
-	std::cerr << "[Parser] Unexpected logicaland token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
-static Node *parser_parse_bitwiseor( Parser *parser )
-{
-	std::cerr << "[Parser] Unexpected bitwiseor token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
-static Node *parser_parse_logicalor( Parser *parser )
-{
-	std::cerr << "[Parser] Unexpected logicalor token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
-static Node *parser_parse_bitwisenot( Parser *parser )
-{
-	std::cerr << "[Parser] Unexpected bitwisenot token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
-static Node *parser_parse_logicalnot( Parser *parser )
-{
-	std::cerr << "[Parser] Unexpected logicalnot token( " << *parser->token << " )." << std::endl;
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
@@ -398,25 +446,33 @@ static Node *parser_parse( Parser *parser )
 	case TokenID::StringLiteral: return parser_parse_stringliteral( parser );
 	case TokenID::Number: return parser_parse_number( parser );
 	case TokenID::Minus: return parser_parse_minus( parser );
-	case TokenID::MinusAssign: return parser_parse_minusassign( parser );
 	case TokenID::Plus: return parser_parse_plus( parser );
-	case TokenID::PlusAssign: return parser_parse_plusassign( parser );
 	case TokenID::Divide: return parser_parse_divide( parser );
-	case TokenID::DivideAssign: return parser_parse_divideassign( parser );
 	case TokenID::Asterisk: return parser_parse_asterisk( parser );
+	case TokenID::Tilde: return parser_parse_tilde( parser );
+	case TokenID::Amp: return parser_parse_amp( parser );
+	case TokenID::Pipe: return parser_parse_pipe( parser );
+	case TokenID::Hat: return parser_parse_hat( parser );
+	case TokenID::Percent: return parser_parse_percent( parser );
+	case TokenID::Exclamation: return parser_parse_exclamation( parser );
+	case TokenID::MinusAssign: return parser_parse_minusassign( parser );
+	case TokenID::PlusAssign: return parser_parse_plusassign( parser );
+	case TokenID::DivideAssign: return parser_parse_divideassign( parser );
 	case TokenID::AsteriskAssign: return parser_parse_asteriskassign( parser );
+	case TokenID::TildeAssign: return parser_parse_tildeassign( parser );
+	case TokenID::AmpAssign: return parser_parse_ampassign( parser );
+	case TokenID::PipeAssign: return parser_parse_pipeassign( parser );
+	case TokenID::HatAssign: return parser_parse_hatassign( parser );
+	case TokenID::PercentAssign: return parser_parse_percentassign( parser );
+	case TokenID::ExclamationAssign: return parser_parse_exclamationassign( parser );
+	case TokenID::DoubleAmp: return parser_parse_doubleamp( parser );
+	case TokenID::DoublePipe: return parser_parse_doublepipe( parser );
 	case TokenID::Assign: return parser_parse_assign( parser );
 	case TokenID::Equal: return parser_parse_equal( parser );
 	case TokenID::GreaterThan: return parser_parse_greaterthan( parser );
 	case TokenID::GreaterOrEqual: return parser_parse_greaterorequal( parser );
 	case TokenID::LesserThan: return parser_parse_lesserthan( parser );
 	case TokenID::LesserOrEqual: return parser_parse_lesserorequal( parser );
-	case TokenID::BitwiseAnd: return parser_parse_bitwiseand( parser );
-	case TokenID::LogicalAnd: return parser_parse_logicaland( parser );
-	case TokenID::BitwiseOr: return parser_parse_bitwiseor( parser );
-	case TokenID::LogicalOr: return parser_parse_logicalor( parser );
-	case TokenID::BitwiseNot: return parser_parse_bitwisenot( parser );
-	case TokenID::LogicalNot: return parser_parse_logicalnot( parser );
 	case TokenID::ParenOpen: return parser_parse_parenopen( parser );
 	case TokenID::ParenClose: return parser_parse_parenclose( parser );
 	case TokenID::BraceOpen: return parser_parse_braceopen( parser );

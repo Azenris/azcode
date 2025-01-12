@@ -165,6 +165,33 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			lexer->txt += 1;
 			return { .id = TokenID::Assign, .line = lexer->line };
 
+		case '^':
+			if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { .id = TokenID::HatAssign, .line = lexer->line };
+			}
+			lexer->txt += 1;
+			return { .id = TokenID::Hat, .line = lexer->line };
+
+		case '%':
+			if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { .id = TokenID::PercentAssign, .line = lexer->line };
+			}
+			lexer->txt += 1;
+			return { .id = TokenID::Percent, .line = lexer->line };
+
+		case '~':
+			if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { .id = TokenID::TildeAssign, .line = lexer->line };
+			}
+			lexer->txt += 1;
+			return { .id = TokenID::Tilde, .line = lexer->line };
+
 		case '>':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
@@ -187,27 +214,38 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			if ( *( lexer->txt + 1 ) == '&' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::LogicalAnd, .line = lexer->line };
+				return { .id = TokenID::DoubleAmp, .line = lexer->line };
+			}
+			else if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { .id = TokenID::AmpAssign, .line = lexer->line };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::BitwiseAnd, .line = lexer->line };
+			return { .id = TokenID::Amp, .line = lexer->line };
 
 		case '|':
 			if ( *( lexer->txt + 1 ) == '|' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::LogicalOr, .line = lexer->line };
+				return { .id = TokenID::DoublePipe, .line = lexer->line };
+			}
+			else if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { .id = TokenID::PipeAssign, .line = lexer->line };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::BitwiseOr, .line = lexer->line };
-
-		case '~':
-			lexer->txt += 1;
-			return { .id = TokenID::BitwiseNot, .line = lexer->line };
+			return { .id = TokenID::Pipe, .line = lexer->line };
 
 		case '!':
+			if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { .id = TokenID::ExclamationAssign, .line = lexer->line };
+			}
 			lexer->txt += 1;
-			return { .id = TokenID::LogicalNot, .line = lexer->line };
+			return { .id = TokenID::Exclamation, .line = lexer->line };
 
 		case '(':
 			lexer->txt += 1;
@@ -299,7 +337,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 				{
 				case '*':
 					{
-						lexer->txt += 2;
+						lexer->txt += 1;
 
 						i32 level = 1;
 						char n;
@@ -322,13 +360,13 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 									n = *( lexer->txt + 1 );
 									if ( c == '/' && n == '*' )
 									{
-										lexer->txt += 2;
+										lexer->txt += 1;
 										level += 1;
 										break;
 									}
 									else if ( c == '*' && n == '/' )
 									{
-										lexer->txt += 2;
+										lexer->txt += 1;
 										level -= 1;
 										break;
 									}
@@ -371,7 +409,7 @@ void Lexer::run( std::string data )
 	tokens.reserve( 65536 );
 	txt = data.c_str();
 	str.reserve( 512 );
-	line = 0;
+	line = 1;
 
 	Token token;
 	token.id = TokenID::EndOfFile;
