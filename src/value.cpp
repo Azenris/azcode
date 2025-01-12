@@ -17,11 +17,25 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 	return out << "Unhandled value ValueType( " << static_cast<i32>( value.type ) << " )";
 }
 
+std::ostream & operator << ( std::ostream &out, const ValueType &valueType )
+{
+	switch ( valueType )
+	{
+	case ValueType::Undefined:			return out << "Undefined";
+	case ValueType::NumberI32:			return out << "NumberI32";
+	case ValueType::NumberI64:			return out << "NumberI64";
+	case ValueType::StringLiteral:		return out << "StringLiteral";
+	case ValueType::KeywordID:			return out << "KeywordID";
+	}
+
+	return out << "Unhandled value ValueType( '" << static_cast<i32>( valueType ) << "' )";
+}
+
 Value operator - ( const Value &lhs, const Value &rhs )
 {
 	if ( lhs.type == ValueType::Undefined || rhs.type == ValueType::Undefined )
 	{
-		std::cerr << "Using '-' operator on value type( " << static_cast<i32>( lhs.type ) << " - " << static_cast<i32>( rhs.type ) << " )" << std::endl;
+		std::cerr << "Using '-' operator with( " << lhs.type << " - " << rhs.type << " )" << std::endl;
 		return nullptr;
 	}
 
@@ -52,7 +66,7 @@ Value operator - ( const Value &lhs, const Value &rhs )
 		return std::to_string( std::stoll( lhs.valueString ) - std::stoll( rhs.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << static_cast<i32>( lhs.type ) << ", " << static_cast<i32>( lhs.type ) << " )" << std::endl;
+	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
 	return nullptr;
 }
 
@@ -66,7 +80,7 @@ Value operator + ( const Value &lhs, const Value &rhs )
 {
 	if ( lhs.type == ValueType::Undefined || rhs.type == ValueType::Undefined )
 	{
-		std::cerr << "Using '-' operator on value type( " << static_cast<i32>( lhs.type ) << " - " << static_cast<i32>( rhs.type ) << " )" << std::endl;
+		std::cerr << "Using '+' operator with( " << lhs.type << " + " << rhs.type << " )" << std::endl;
 		return nullptr;
 	}
 
@@ -97,7 +111,7 @@ Value operator + ( const Value &lhs, const Value &rhs )
 		return std::to_string( std::stoll( lhs.valueString ) + std::stoll( rhs.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << static_cast<i32>( lhs.type ) << ", " << static_cast<i32>( lhs.type ) << " )" << std::endl;
+	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
 	return nullptr;
 }
 
@@ -111,7 +125,7 @@ Value operator / ( const Value &lhs, const Value &rhs )
 {
 	if ( lhs.type == ValueType::Undefined || rhs.type == ValueType::Undefined )
 	{
-		std::cerr << "Using '-' operator on value type( " << static_cast<i32>( lhs.type ) << " - " << static_cast<i32>( rhs.type ) << " )" << std::endl;
+		std::cerr << "Using '/' operator with( " << lhs.type << " / " << rhs.type << " )" << std::endl;
 		return nullptr;
 	}
 
@@ -142,7 +156,7 @@ Value operator / ( const Value &lhs, const Value &rhs )
 		return std::to_string( std::stoll( lhs.valueString ) / std::stoll( rhs.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << static_cast<i32>( lhs.type ) << ", " << static_cast<i32>( lhs.type ) << " )" << std::endl;
+	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
 	return nullptr;
 }
 
@@ -156,7 +170,7 @@ Value operator * ( const Value &lhs, const Value &rhs )
 {
 	if ( lhs.type == ValueType::Undefined || rhs.type == ValueType::Undefined )
 	{
-		std::cerr << "Using '-' operator on value type( " << static_cast<i32>( lhs.type ) << " - " << static_cast<i32>( rhs.type ) << " )" << std::endl;
+		std::cerr << "Using '*' operator with( " << lhs.type << " * " << rhs.type << " )" << std::endl;
 		return nullptr;
 	}
 

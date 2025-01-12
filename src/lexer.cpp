@@ -98,9 +98,9 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 			const KeywordType *kw = get_keyword( lexer->str );
 			if ( kw )
-				return { .id = TokenID::Keyword, .value = { static_cast<i32>( kw->id ), lexer->str.c_str() } };
+				return { .id = TokenID::Keyword, .value = { static_cast<i32>( kw->id ), lexer->str.c_str() }, .line = lexer->line };
 
-			return { .id = TokenID::Identifier, .value = lexer->str };
+			return { .id = TokenID::Identifier, .value = lexer->str, .line = lexer->line };
 		}
 
 		if ( is_digit( c ) )
@@ -111,7 +111,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			if ( to_int( &number, lexer->txt, &end ) == ToIntResult::Success )
 			{
 				lexer->txt = end;
-				return { .id = TokenID::Number, .value = number };
+				return { .id = TokenID::Number, .value = number, .line = lexer->line };
 			}
 
 			std::cerr << "[Lexer] Could not convert value to int ( " << lexer->txt << " )." << std::endl;
@@ -124,128 +124,129 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { TokenID::MinusAssign };
+				return { .id = TokenID::MinusAssign, .line = lexer->line };
 			}
 			else
 			{
 				lexer->txt += 1;
-				return { TokenID::Minus };
+				return { .id = TokenID::Minus, .line = lexer->line };
 			}
 
 		case '+':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { TokenID::PlusAssign };
+				return { .id = TokenID::PlusAssign, .line = lexer->line };
 			}
 			else
 			{
 				lexer->txt += 1;
-				return { TokenID::Plus };
+				return { .id = TokenID::Plus, .line = lexer->line };
 			}
 
 		case '*':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { TokenID::AsteriskAssign };
+				return { .id = TokenID::AsteriskAssign, .line = lexer->line };
 			}
 			else
 			{
 				lexer->txt += 1;
-				return { TokenID::Asterisk };
+				return { .id = TokenID::Asterisk, .line = lexer->line };
 			}
 
 		case '=':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { TokenID::Equal };
+				return { .id = TokenID::Equal, .line = lexer->line };
 			}
 			lexer->txt += 1;
-			return { TokenID::Assign };
+			return { .id = TokenID::Assign, .line = lexer->line };
 
 		case '>':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { TokenID::GreaterOrEqual };
+				return { .id = TokenID::GreaterOrEqual, .line = lexer->line };
 			}
 			lexer->txt += 1;
-			return { TokenID::GreaterThan };
+			return { .id = TokenID::GreaterThan, .line = lexer->line };
 
 		case '<':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { TokenID::LesserOrEqual };
+				return { .id = TokenID::LesserOrEqual, .line = lexer->line };
 			}
 			lexer->txt += 1;
-			return { TokenID::LesserThan };
+			return { .id = TokenID::LesserThan, .line = lexer->line };
 
 		case '&':
 			if ( *( lexer->txt + 1 ) == '&' )
 			{
 				lexer->txt += 2;
-				return { TokenID::LogicalAnd };
+				return { .id = TokenID::LogicalAnd, .line = lexer->line };
 			}
 			lexer->txt += 1;
-			return { TokenID::BitwiseAnd };
+			return { .id = TokenID::BitwiseAnd, .line = lexer->line };
 
 		case '|':
 			if ( *( lexer->txt + 1 ) == '|' )
 			{
 				lexer->txt += 2;
-				return { TokenID::LogicalOr };
+				return { .id = TokenID::LogicalOr, .line = lexer->line };
 			}
 			lexer->txt += 1;
-			return { TokenID::BitwiseOr };
+			return { .id = TokenID::BitwiseOr, .line = lexer->line };
 
 		case '~':
 			lexer->txt += 1;
-			return { TokenID::BitwiseNot };
+			return { .id = TokenID::BitwiseNot, .line = lexer->line };
 
 		case '!':
 			lexer->txt += 1;
-			return { TokenID::LogicalNot };
+			return { .id = TokenID::LogicalNot, .line = lexer->line };
 
 		case '(':
 			lexer->txt += 1;
-			return { TokenID::ParenOpen };
+			return { .id = TokenID::ParenOpen, .line = lexer->line };
 
 		case ')':
 			lexer->txt += 1;
-			return { TokenID::ParenClose };
+			return { .id = TokenID::ParenClose, .line = lexer->line };
 
 		case '{':
 			lexer->txt += 1;
-			return { TokenID::BraceOpen };
+			return { .id = TokenID::BraceOpen, .line = lexer->line };
 
 		case '}':
 			lexer->txt += 1;
-			return { TokenID::BraceClose };
+			return { .id = TokenID::BraceClose, .line = lexer->line };
 
 		case '.':
 			lexer->txt += 1;
-			return { TokenID::Period };
+			return { .id = TokenID::Period, .line = lexer->line };
 
 		case ',':
 			lexer->txt += 1;
-			return { TokenID::Comma };
+			return { .id = TokenID::Comma, .line = lexer->line };
 
 		case ':':
 			lexer->txt += 1;
-			return { TokenID::Colon };
+			return { .id = TokenID::Colon, .line = lexer->line };
 
 		case ';':
 			lexer->txt += 1;
-			return { TokenID::SemiColon };
+			return { .id = TokenID::SemiColon, .line = lexer->line };
 
 		case '\n':
+			lexer->line += 1;
 			if ( lastToken->id != TokenID::NewLine && lastToken->id != TokenID::EndOfFile )
 			{
 				lexer->txt += 1;
-				return { TokenID::NewLine };
+				return { .id = TokenID::NewLine, .line = lexer->line - 1 };
 			}
 			break;
 
@@ -269,8 +270,11 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 						std::cerr << "[Lexer] String literal not closed." << std::endl;
 						exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
 					}
-
-					if ( p == '\\' && c == '"' )
+					else if ( c == '\n' )
+					{
+						lexer->line += 1;
+					}
+					else if ( p == '\\' && c == '"' )
 					{
 						lexer->str.append( start, len - 1 );
 						lexer->str.append( "\"" );
@@ -285,7 +289,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 				lexer->txt += 1;
 
-				return { .id = TokenID::StringLiteral, .value = lexer->str };
+				return { .id = TokenID::StringLiteral, .value = lexer->str, .line = lexer->line };
 			}
 			break;
 
@@ -306,19 +310,28 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 							{
 								c = *(++lexer->txt);
 								if ( c == '\0' )
-									return { TokenID::EndOfFile };
-								n = *( lexer->txt + 1 );
-								if ( c == '/' && n == '*' )
 								{
-									lexer->txt += 2;
-									level += 1;
-									break;
+									return { .id = TokenID::EndOfFile, .line = lexer->line };
 								}
-								else if ( c == '*' && n == '/' )
+								else if ( c == '\n' )
 								{
-									lexer->txt += 2;
-									level -= 1;
-									break;
+									lexer->line += 1;
+								}
+								else
+								{
+									n = *( lexer->txt + 1 );
+									if ( c == '/' && n == '*' )
+									{
+										lexer->txt += 2;
+										level += 1;
+										break;
+									}
+									else if ( c == '*' && n == '/' )
+									{
+										lexer->txt += 2;
+										level -= 1;
+										break;
+									}
 								}
 							}
 						}
@@ -330,17 +343,18 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 					{
 						c = *(++lexer->txt);
 						if ( c == '\0' )
-							return { TokenID::EndOfFile };
+							return { .id = TokenID::EndOfFile, .line = lexer->line };
 					} while ( c != '\n' );
+					lexer->line += 1;
 					break;
 
 				case '=':
 					lexer->txt += 2;
-					return { TokenID::DivideAssign };
+					return { .id = TokenID::DivideAssign, .line = lexer->line };
 
 				default:
 					lexer->txt += 1;
-					return { TokenID::Divide };
+					return { .id = TokenID::Divide, .line = lexer->line };
 				}
 			}
 		}
@@ -348,7 +362,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 		c = *(++lexer->txt);
 	}
 
-	return { TokenID::EndOfFile };
+	return { .id = TokenID::EndOfFile, .line = lexer->line };
 }
 
 void Lexer::run( std::string data )
@@ -357,6 +371,7 @@ void Lexer::run( std::string data )
 	tokens.reserve( 65536 );
 	txt = data.c_str();
 	str.reserve( 512 );
+	line = 0;
 
 	Token token;
 	token.id = TokenID::EndOfFile;

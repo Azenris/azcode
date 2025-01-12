@@ -169,7 +169,7 @@ std::ostream & operator << ( std::ostream &out, const Token &token )
 		break;
 	}
 
-	return out;
+	return out << " [line:" << token.line << "]";
 }
 
 std::ostream & operator << ( std::ostream &out, const TokenID &TokenID )

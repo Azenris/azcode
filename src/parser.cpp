@@ -121,10 +121,10 @@ static Node *parser_parse_identifier( Parser *parser )
 			parser_consume( parser, parser->token->id );
 			Node *assignment = new_node( NodeType::Assignment, parser->token );
 			assignment->left = node;
-			Node *right = new_node( NodeType::Operation, parser->token );
-			right->left = node;
-			right->right = parser_parse( parser );
-			assignment->right = right;
+			Node *op = new_node( NodeType::Operation, parser->token );
+			op->left = node;
+			op->right = parser_parse( parser );
+			assignment->right = op;
 			return assignment;
 		}
 		break;
@@ -146,8 +146,7 @@ static Node *parser_parse_identifier( Parser *parser )
 		break;
 	}
 
-	std::cerr << "[Parser] Unexpected identifier token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	return node;
 }
 
 static Node *parser_parse_stringliteral( Parser *parser )
@@ -309,6 +308,25 @@ static Node *parser_parse_parenopen( Parser *parser )
 	while ( parser->token->id != TokenID::ParenClose )
 		node->children.push_back( parser_parse( parser ) );
 	parser_consume( parser, TokenID::ParenClose );
+
+	// TODO : precendence
+
+	switch ( parser->token->id )
+	{
+	case TokenID::Minus:
+	case TokenID::Plus:
+	case TokenID::Divide:
+	case TokenID::Asterisk:
+		{
+			token = parser_consume( parser, parser->token->id );
+			Node *op = new_node( NodeType::Operation, token );
+			op->left = node;
+			op->right = parser_parse( parser );
+			return op;
+		}
+		break;
+	}
+
 	return node;
 }
 
@@ -445,6 +463,7 @@ void Parser::run( std::vector<Token> tokensIn )
 		exit( RESULT_CODE_EMPTY_SCRIPT );
 	}
 
+	// TODO : functions will need a version of this too, but not all blocks will
 	Node *lastNode = root->children.back();
 
 	if ( lastNode->token->id != TokenID::Keyword || lastNode->value.valueString != "return" )

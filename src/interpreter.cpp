@@ -21,7 +21,7 @@ Value Interpreter::run( Node *node )
 		break;
 
 	case NodeType::Identifier:
-		break;
+		return data[ node->value.valueString ];
 
 	case NodeType::StringLiteral:
 		return node->value;
@@ -31,35 +31,24 @@ Value Interpreter::run( Node *node )
 
 	case NodeType::Assignment:
 		{
+			//data[ node->left->value.valueString ] = run( node->right );
 			Value vv = run( node->right );
 			data[ node->left->value.valueString ] = vv;
-			//data[ node->left->value.valueString ] = run( node->right );
-			
 			std::cout << "temp: assigning var(\"" << node->left->value.valueString << "\") to " << vv << std::endl;
 		}
-		
-		// {
-			// i64 
-		// }
-		
-	
-		// parser_consume( parser, TokenID::Assign );
-		// Node *node = new_node( NodeType::Assignment );
-		// node->token = token;
-		// node->value = parser_parse( parser );
 		break;
 
 	case NodeType::Operation:
 		switch ( node->token->id )
 		{
-		case TokenID::Minus:			value = node->left->value - node->right->value; break;
-		case TokenID::Plus:				value = node->left->value + node->right->value; break;
-		case TokenID::Divide:			value = node->left->value / node->right->value; break;
-		case TokenID::Asterisk:			value = node->left->value * node->right->value; break;
-		case TokenID::MinusAssign:		value = node->left->value - node->right->value; break;
-		case TokenID::PlusAssign:		value = node->left->value + node->right->value; break;
-		case TokenID::DivideAssign:		value = node->left->value / node->right->value; break;
-		case TokenID::AsteriskAssign:	value = node->left->value - node->right->value; break;
+		case TokenID::Minus:			value = run( node->left ) - run( node->right ); break;
+		case TokenID::Plus:				value = run( node->left ) + run( node->right ); break;
+		case TokenID::Divide:			value = run( node->left ) / run( node->right ); break;
+		case TokenID::Asterisk:			value = run( node->left ) * run( node->right ); break;
+		case TokenID::MinusAssign:		value = run( node->left ) - run( node->right ); break;
+		case TokenID::PlusAssign:		value = run( node->left ) + run( node->right ); break;
+		case TokenID::DivideAssign:		value = run( node->left ) / run( node->right ); break;
+		case TokenID::AsteriskAssign:	value = run( node->left ) - run( node->right ); break;
 		}
 		break;
 

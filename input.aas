@@ -22,13 +22,14 @@ nothing to see here*/
 
 //this is a comment line!
 
-test1 = (5+2)
-test2=5
-test3 = (99)
-test4          =(99-1)
-test5 = "this is a quote in a string \"to be or not to be\". See!"
+//test1 = ( ( 5 + 7 ) + 2 )
+//test1 = 1 + 2 - 3   ordering b o d m a s
+test2 = 5 * 1 + 1
+//test2 = ( 1 + 2 ) + 3   // broke
+//test3 = 5 + 1 / 3
+//test4 = "this is a quote in a string \"to be or not to be\". See!"
 
-return 3 + 2
+return test2
 
 //print(test1)
 

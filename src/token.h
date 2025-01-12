@@ -72,6 +72,7 @@ struct Token
 {
 	TokenID id;
 	Value value;
+	i32 line;
 };
 
 std::ostream & operator << ( std::ostream &out, const Token &token );
