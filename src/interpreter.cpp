@@ -5,15 +5,17 @@
 
 Value Interpreter::run( Node *node )
 {
-	Value value;
-
 	switch ( node->type )
 	{
 	case NodeType::Block:
-		for ( auto child : node->children )
 		{
-			value = run( child );
-			// TODO : if the node was  a return, it should break from this block
+			Value value;
+			for ( auto child : node->children )
+			{
+				value = run( child );
+				// TODO : if the node was  a return, it should break from this block
+			}
+			return value;
 		}
 		break;
 
@@ -32,23 +34,23 @@ Value Interpreter::run( Node *node )
 	case NodeType::Assignment:
 		{
 			//data[ node->left->value.valueString ] = run( node->right );
-			Value vv = run( node->right );
-			data[ node->left->value.valueString ] = vv;
-			std::cout << "temp: assigning var(\"" << node->left->value.valueString << "\") to " << vv << std::endl;
+			Value val = run( node->right );
+			data[ node->left->value.valueString ] = val;
+			std::cout << "[Interpreter] Assigning var(\"" << node->left->value.valueString << "\") to " << val << std::endl;
 		}
 		break;
 
 	case NodeType::Operation:
 		switch ( node->token->id )
 		{
-		case TokenID::Minus:			value = run( node->left ) - run( node->right ); break;
-		case TokenID::Plus:				value = run( node->left ) + run( node->right ); break;
-		case TokenID::Divide:			value = run( node->left ) / run( node->right ); break;
-		case TokenID::Asterisk:			value = run( node->left ) * run( node->right ); break;
-		case TokenID::MinusAssign:		value = run( node->left ) - run( node->right ); break;
-		case TokenID::PlusAssign:		value = run( node->left ) + run( node->right ); break;
-		case TokenID::DivideAssign:		value = run( node->left ) / run( node->right ); break;
-		case TokenID::AsteriskAssign:	value = run( node->left ) - run( node->right ); break;
+		case TokenID::Minus:			return run( node->left ) - run( node->right ); break;
+		case TokenID::Plus:				return run( node->left ) + run( node->right ); break;
+		case TokenID::Divide:			return run( node->left ) / run( node->right ); break;
+		case TokenID::Asterisk:			return run( node->left ) * run( node->right ); break;
+		case TokenID::MinusAssign:		return run( node->left ) - run( node->right ); break;
+		case TokenID::PlusAssign:		return run( node->left ) + run( node->right ); break;
+		case TokenID::DivideAssign:		return run( node->left ) / run( node->right ); break;
+		case TokenID::AsteriskAssign:	return run( node->left ) - run( node->right ); break;
 		}
 		break;
 
@@ -59,5 +61,10 @@ Value Interpreter::run( Node *node )
 		return run( node->left );
 	}
 
-	return value;
+	return Value();
+}
+
+void Interpreter::cleanup()
+{
+	data.clear();
 }

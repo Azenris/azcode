@@ -36,6 +36,50 @@ static Token *parser_ignore( Parser *parser, TokenID tokenID )
 	return parser->token;
 }
 
+static i32 get_operator_precedence( TokenID tokenID )
+{
+	switch ( tokenID )
+	{
+	case TokenID::Minus: return 1;
+	case TokenID::Plus: return 1;
+	case TokenID::Divide: return 0;
+	case TokenID::Asterisk: return 0;
+	}
+	std::cerr << "[Parser] Unexpected operator precendence token( " << tokenID << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
+static Node *parser_parse_operator( Parser *parser, Node *node )
+{
+	switch ( parser->token->id )
+	{
+	case TokenID::Minus:
+	case TokenID::Plus:
+	case TokenID::Divide:
+	case TokenID::Asterisk:
+		{
+			Token *token = parser_consume( parser, parser->token->id );
+			Node *op = new_node( NodeType::Operation, token );
+			op->left = node;
+			Node *right = parser_parse( parser );
+			op->right = right;
+			if ( op->right->type == NodeType::Operation && get_operator_precedence( right->token->id ) > get_operator_precedence( op->token->id ) )
+			{
+				op->right = right->left;
+				right->left = op;
+				node = right;
+			}
+			else
+			{
+				node = op;
+			}
+		}
+		break;
+	}
+
+	return node;
+}
+
 static Node *parser_parse_keyword( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::Keyword );
@@ -130,21 +174,7 @@ static Node *parser_parse_identifier( Parser *parser )
 		break;
 	}
 
-	switch ( parser->token->id )
-	{
-	case TokenID::Minus:
-	case TokenID::Plus:
-	case TokenID::Divide:
-	case TokenID::Asterisk:
-		{
-			token = parser_consume( parser, parser->token->id );
-			Node *op = new_node( NodeType::Operation, token );
-			op->left = node;
-			op->right = parser_parse( parser );
-			return op;
-		}
-		break;
-	}
+	node = parser_parse_operator( parser, node );
 
 	return node;
 }
@@ -160,23 +190,7 @@ static Node *parser_parse_number( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::Number );
 	Node *node = new_node( NodeType::Number, token );
-
-	switch ( parser->token->id )
-	{
-	case TokenID::Minus:
-	case TokenID::Plus:
-	case TokenID::Divide:
-	case TokenID::Asterisk:
-		{
-			token = parser_consume( parser, parser->token->id );
-			Node *op = new_node( NodeType::Operation, token );
-			op->left = node;
-			op->right = parser_parse( parser );
-			return op;
-		}
-		break;
-	}
-
+	node = parser_parse_operator( parser, node );
 	return node;
 }
 
@@ -308,25 +322,7 @@ static Node *parser_parse_parenopen( Parser *parser )
 	while ( parser->token->id != TokenID::ParenClose )
 		node->children.push_back( parser_parse( parser ) );
 	parser_consume( parser, TokenID::ParenClose );
-
-	// TODO : precendence
-
-	switch ( parser->token->id )
-	{
-	case TokenID::Minus:
-	case TokenID::Plus:
-	case TokenID::Divide:
-	case TokenID::Asterisk:
-		{
-			token = parser_consume( parser, parser->token->id );
-			Node *op = new_node( NodeType::Operation, token );
-			op->left = node;
-			op->right = parser_parse( parser );
-			return op;
-		}
-		break;
-	}
-
+	node = parser_parse_operator( parser, node );
 	return node;
 }
 
@@ -471,5 +467,34 @@ void Parser::run( std::vector<Token> tokensIn )
 		Node *returnNode = new_node( NodeType::Number, nullptr );
 		returnNode->value = static_cast<i32>( 0 );
 		root->children.push_back( returnNode );
+	}
+}
+
+void Parser::cleanup()
+{
+	tokens.clear();
+	token = nullptr;
+	tokenIndex = 0;
+
+	Node *node = root;
+	std::vector<Node*> nodes;
+	while ( node )
+	{
+		if ( node->left )
+			nodes.push_back( node->left );
+		if ( node->right )
+			nodes.push_back( node->right );
+		for ( auto child : node->children )
+			nodes.push_back( child );
+		delete node;
+		if ( !nodes.empty() )
+		{
+			node = nodes.back();
+			nodes.pop_back();
+		}
+		else
+		{
+			node = nullptr;
+		}
 	}
 }

@@ -68,14 +68,6 @@ struct TokenType
 	const char *name;
 };
 
-struct Token
-{
-	TokenID id;
-	Value value;
-	i32 line;
-};
-
-std::ostream & operator << ( std::ostream &out, const Token &token );
 std::ostream & operator << ( std::ostream &out, const TokenID &TokenID );
 
 constexpr KeywordType Keywords[] =
@@ -233,3 +225,12 @@ constexpr TokenType TokenTypes[] =
 		.name = "EndOfFile",
 	},
 };
+
+struct Token
+{
+	TokenID id;
+	Value value;
+	i32 line;
+};
+
+std::ostream & operator << ( std::ostream &out, const Token &token );

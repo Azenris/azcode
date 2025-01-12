@@ -32,6 +32,7 @@ struct Node
 struct Parser
 {
 	void run( std::vector<Token> tokens );
+	void cleanup();
 
 	std::vector<Token> tokens;
 	Token *token;

@@ -7,6 +7,7 @@
 struct Lexer
 {
 	void run( std::string data );
+	void cleanup();
 
 	std::vector<Token> tokens;
 	const char *txt;

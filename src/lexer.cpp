@@ -386,3 +386,11 @@ void Lexer::run( std::string data )
 	txt = nullptr;
 	str.clear();
 }
+
+void Lexer::cleanup()
+{
+	tokens.clear();
+	txt = nullptr;
+	str.clear();
+	line = 0;
+}

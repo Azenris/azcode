@@ -64,10 +64,19 @@ int main( int argc, char *argv[] )
 
 	lexer.run( std::move( data ) );
 	std::cout << "lexer finished." << std::endl;
+
 	parser.run( std::move( lexer.tokens ) );
-	std::cout << "parser finished." << std::endl;
+	std::cout << "Parser finished." << std::endl;
+
 	i32 ret = interpreter.run( parser.root ).valueI32;
-	std::cout << "interpreter finished (" << ret << ")." << std::endl;
+	std::cout << "Interpreter finished." << std::endl;
+
+	lexer.cleanup();
+	parser.cleanup();
+	interpreter.cleanup();
+
+	std::cout << "ReturnCode (" << ret << ")." << std::endl;
+
 	return ret;
 }
 
