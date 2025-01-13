@@ -135,6 +135,8 @@ static Node *parser_parse_operator( Parser *parser, Node *node )
 
 static Node *parser_parse_func_args( Parser *parser )
 {
+	parser->scope += 1;
+
 	Node *args = new_node( parser, NodeType::FunctionArgs, nullptr );
 
 	parser_ignore( parser, TokenID::NewLine );
@@ -163,11 +165,15 @@ static Node *parser_parse_func_args( Parser *parser )
 		args = nullptr;
 	}
 
+	parser->scope -= 1;
+
 	return args;
 }
 
 static void parser_parse_codeblock( Parser *parser, Node *node )
 {
+	parser->scope += 1;
+
 	parser_ignore( parser, TokenID::NewLine );
 	parser_consume( parser, TokenID::BraceOpen );
 	parser_ignore( parser, TokenID::NewLine );
@@ -179,6 +185,8 @@ static void parser_parse_codeblock( Parser *parser, Node *node )
 	}
 
 	parser_consume( parser, TokenID::BraceClose );
+
+	parser->scope -= 1;
 }
 
 static Node *parser_parse_keyword( Parser *parser )
@@ -226,19 +234,24 @@ static Node *parser_parse_keyword( Parser *parser )
 			node->left = parser_parse( parser );
 			parser_ignore( parser, TokenID::NewLine );
 			parser_consume( parser, TokenID::ParenClose );
-			parser->scope += 1;
-			// if codeblock
+			// if
 			parser_parse_codeblock( parser, node );
 			parser_ignore( parser, TokenID::NewLine );
-			// else codeblock (if any)
 			if ( parser->token->id == TokenID::Keyword && static_cast<KeywordID>( parser->token->value.valueI32 ) == KeywordID::Else )
 			{
 				parser_consume( parser, TokenID::Keyword );
-				Node *elseCodeblock = new_node( parser, NodeType::Block, nullptr );
-				node->right = elseCodeblock;
-				parser_parse_codeblock( parser, elseCodeblock );
+				if ( parser->token->id == TokenID::Keyword && static_cast<KeywordID>( parser->token->value.valueI32 ) == KeywordID::If )
+				{
+					// else if
+					node->right = parser_parse_keyword( parser );
+				}
+				else
+				{
+					// else
+					node->right = new_node( parser, NodeType::Block, nullptr );
+					parser_parse_codeblock( parser, node->right );
+				}
 			}
-			parser->scope -= 1;
 			return node;
 		}
 	}
@@ -305,13 +318,11 @@ static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nul
 
 	case TokenID::ColonAssign:
 		{
-			parser->scope += 1;
 			token = parser_consume( parser, TokenID::ColonAssign );
 			Node *declFunc = new_node( parser, NodeType::DeclFunc, token );
 			declFunc->left = node;
 			declFunc->right = parser_parse_func_args( parser );
 			parser_parse_codeblock( parser, declFunc );
-			parser->scope -= 1;
 			return declFunc;
 		}
 		break;

@@ -155,7 +155,7 @@ Value Interpreter::run( Node *node )
 			}
 			else if ( node->right )
 			{
-				return process_codeblock( this, node->right );
+				return run( node->right );
 			}
 		}
 
