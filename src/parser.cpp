@@ -187,10 +187,13 @@ static Node *parser_parse_func_args( Parser *parser )
 	return args;
 }
 
-static Node *parser_parse_identifier( Parser *parser )
+static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nullptr )
 {
 	Token *token = parser_consume( parser, TokenID::Identifier );
 	Node *node = new_node( parser, NodeType::Identifier, token );
+
+	if ( identiferNode )
+		*identiferNode = node;
 
 	switch ( parser->token->id )
 	{
@@ -251,7 +254,7 @@ static Node *parser_parse_identifier( Parser *parser )
 
 			parser_ignore( parser, TokenID::NewLine );
 
-			// -- get code block --
+			// -- get func codeblock --
 			parser_consume( parser, TokenID::BraceOpen );
 
 			parser_ignore( parser, TokenID::NewLine );
@@ -514,6 +517,14 @@ static Node *parser_parse_braceclose( Parser *parser )
 
 static Node *parser_parse_period( Parser *parser )
 {
+	Token *token = parser_consume( parser, TokenID::Period );
+	if ( parser->token->id == TokenID::Identifier )
+	{
+		Node *identiferNode;
+		Node *node = parser_parse_identifier( parser, &identiferNode );
+		identiferNode->scope = -1;
+		return node;
+	}
 	std::cerr << "[Parser] Unexpected period token( " << *parser->token << " )." << std::endl;
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }

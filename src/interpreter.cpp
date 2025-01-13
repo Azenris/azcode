@@ -117,8 +117,6 @@ Value Interpreter::run( Node *node )
 					// -- setup arguments --
 					data.emplace_back();
 
-					assert( funcNode->scope == static_cast<i32>( data.size() - 1 ) );
-
 					for ( i32 argIdx = 0, argCount = static_cast<i32>( node->children.size() ); argIdx < argCount; ++argIdx )
 						data[ funcNode->scope ][ funcNode->right->children[ argIdx ]->value.valueString ] = run( node->children[ argIdx ] );
 
@@ -153,25 +151,31 @@ Value Interpreter::run( Node *node )
 
 Value &Interpreter::get_value( Node *node )
 {
-	for ( i32 scope = node->scope; scope >= 0; --scope )
+	for ( i32 scope = static_cast<i32>( data.size() ) - 1; scope >= 0; --scope )
 	{
 		auto iter = data[ scope ].find( node->value.valueString );
 		if ( iter != data[ scope ].end() )
 			return iter->second;
 	}
+
 	std::cerr << "[Interpreter] Variable unknown \"" << node->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
 	exit( RESULT_CODE_VARIABLE_UNKNOWN );
 }
 
 Value &Interpreter::get_or_create_value( Node *node )
 {
-	for ( i32 scope = node->scope; scope >= 0; --scope )
+	// Check if its a local variable, will use the current scope
+	if ( node->scope == -1 )
+		return data.back()[ node->value.valueString ];
+
+	for ( i32 scope = static_cast<i32>( data.size() ) - 1; scope >= 0; --scope )
 	{
 		auto iter = data[ scope ].find( node->value.valueString );
 		if ( iter != data[ scope ].end() )
 			return iter->second;
 	}
-	return data[ node->scope ][ node->value.valueString ];
+
+	return data[ 0 ][ node->value.valueString ];
 }
 
 void Interpreter::cleanup()
