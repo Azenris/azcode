@@ -11,7 +11,6 @@ enum class NodeType
 {
 	Entry,
 	Block,
-	EndStatement,
 	Identifier,
 	StringLiteral,
 	Number,

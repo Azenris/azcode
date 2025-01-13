@@ -49,9 +49,6 @@ Value Interpreter::run( Node *node )
 	case NodeType::Block:
 		return process_codeblock( this, node );
 
-	case NodeType::EndStatement:
-		break;
-
 	case NodeType::Identifier:
 		return get_value( node );
 

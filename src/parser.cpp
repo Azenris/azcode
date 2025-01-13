@@ -621,9 +621,8 @@ static Node *parser_parse_semicolon( Parser *parser )
 
 static Node *parser_parse_newline( Parser *parser )
 {
-	Token *token = parser_consume( parser, TokenID::NewLine );
-	Node *node = new_node( parser, NodeType::EndStatement, token );
-	return node;
+	parser_consume( parser, TokenID::NewLine );
+	return nullptr;
 }
 
 static Node *parser_parse_endoffile( Parser *parser )
@@ -698,11 +697,13 @@ void Parser::run( std::vector<Token> tokensIn )
 		// std::cout << " " << t << std::endl;
 	// std::cout << std::endl;
 
+	Node *node;
 	while ( token->id != TokenID::EndOfFile )
-		root->children.push_back( parser_parse( this ) );
-
-	// -- If the program doesn't have a final return, add one --
-	bool autoAddReturn = false;
+	{
+		node = parser_parse( this );
+		if ( node )
+			root->children.push_back( node );
+	}
 
 	if ( root->children.empty() )
 	{
