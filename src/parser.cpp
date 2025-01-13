@@ -242,6 +242,8 @@ static Node *parser_parse_identifier( Parser *parser )
 
 	case TokenID::ColonAssign:
 		{
+			parser->scope += 1;
+
 			token = parser_consume( parser, TokenID::ColonAssign );
 			Node *declFunc = new_node( parser, NodeType::DeclFunc, token );
 			declFunc->left = node;
@@ -253,8 +255,6 @@ static Node *parser_parse_identifier( Parser *parser )
 			parser_consume( parser, TokenID::BraceOpen );
 
 			parser_ignore( parser, TokenID::NewLine );
-
-			parser->scope += 1;
 
 			while ( parser->token->id != TokenID::BraceClose )
 			{
@@ -614,7 +614,7 @@ void Parser::run( std::vector<Token> tokensIn )
 	tokenIndex = 0;
 	scope = 0;
 	token = &tokens[ tokenIndex ];
-	root = new_node( this, NodeType::Block, nullptr );
+	root = new_node( this, NodeType::Entry, nullptr );
 
 	// std::cout << "[Tokens]" << std::endl;
 	// for ( Token &t : tokens )
@@ -623,8 +623,6 @@ void Parser::run( std::vector<Token> tokensIn )
 
 	while ( token->id != TokenID::EndOfFile )
 		root->children.push_back( parser_parse( this ) );
-
-	root->children.pop_back();
 
 	// -- If the program doesn't have a final return, add one --
 	bool autoAddReturn = false;

@@ -7,14 +7,45 @@ Value Interpreter::run( Node *node )
 {
 	switch ( node->type )
 	{
-	case NodeType::Block:
+	case NodeType::Entry:
 		{
+			data.clear();
+			data.push_back(
+			{
+				// Built-In Variables
+				{
+					{ "Get-Version", { "0.0.1" } }
+				},
+			} );
+
 			Value value;
 			for ( auto child : node->children )
 			{
 				value = run( child );
-				// TODO : if the node was  a return, it should break from this block
+				if ( child->type == NodeType::Return )
+				{
+					data.pop_back();
+					return value;
+				}
 			}
+			return value;
+		}
+		break;
+
+	case NodeType::Block:
+		{
+			data.emplace_back();
+			Value value;
+			for ( auto child : node->children )
+			{
+				value = run( child );
+				if ( child->type == NodeType::Return )
+				{
+					data.pop_back();
+					return value;
+				}
+			}
+			data.pop_back();
 			return value;
 		}
 		break;
@@ -23,7 +54,7 @@ Value Interpreter::run( Node *node )
 		break;
 
 	case NodeType::Identifier:
-		return data[ node->value.valueString ];
+		return get_value( node );
 
 	case NodeType::StringLiteral:
 		return node->value;
@@ -32,19 +63,19 @@ Value Interpreter::run( Node *node )
 		return node->value;
 
 	case NodeType::Assignment:
-		return data[ node->left->value.valueString ] = run( node->right );
+		return get_or_create_value( node->left ) = run( node->right );
 
 	case NodeType::AssignmentOp:
 		switch ( node->token->id )
 		{
-		case TokenID::MinusAssign:		return data[ node->left->value.valueString ] -= run( node->right ); break;
-		case TokenID::PlusAssign:		return data[ node->left->value.valueString ] += run( node->right ); break;
-		case TokenID::DivideAssign:		return data[ node->left->value.valueString ] /= run( node->right ); break;
-		case TokenID::AsteriskAssign:	return data[ node->left->value.valueString ] *= run( node->right ); break;
-		case TokenID::AmpAssign:		return data[ node->left->value.valueString ] &= run( node->right ); break;
-		case TokenID::PipeAssign:		return data[ node->left->value.valueString ] |= run( node->right ); break;
-		case TokenID::HatAssign:		return data[ node->left->value.valueString ] ^= run( node->right ); break;
-		case TokenID::PercentAssign:	return data[ node->left->value.valueString ] %= run( node->right ); break;
+		case TokenID::MinusAssign:		return get_value( node->left ) -= run( node->right ); break;
+		case TokenID::PlusAssign:		return get_value( node->left ) += run( node->right ); break;
+		case TokenID::DivideAssign:		return get_value( node->left ) /= run( node->right ); break;
+		case TokenID::AsteriskAssign:	return get_value( node->left ) *= run( node->right ); break;
+		case TokenID::AmpAssign:		return get_value( node->left ) &= run( node->right ); break;
+		case TokenID::PipeAssign:		return get_value( node->left ) |= run( node->right ); break;
+		case TokenID::HatAssign:		return get_value( node->left ) ^= run( node->right ); break;
+		case TokenID::PercentAssign:	return get_value( node->left ) %= run( node->right ); break;
 		}
 		break;
 
@@ -62,7 +93,55 @@ Value Interpreter::run( Node *node )
 		}
 		break;
 
+	case NodeType::DeclFunc:
+		get_or_create_value( node->left ) = node;
+		break;
+
+	case NodeType::FunctionArgs:
+		break;
+
 	case NodeType::FunctionCall:
+		{
+			Value call = get_value( node->left );
+			if ( call.type == ValueType::Node )
+			{
+				Node *funcNode = call.valueNode;
+				if ( funcNode )
+				{
+					if ( funcNode->right->children.size() != node->children.size() )
+					{
+						std::cerr << "[Interpreter] Function wants " << funcNode->right->children.size() << " args, but was given " << node->children.size() << " args." << std::endl;
+						exit( RESULT_CODE_FUNCTION_ARG_COUNT );
+					}
+
+					assert( node->scope == static_cast<i32>( data.size() - 1 ) );
+
+					// -- setup arguments --
+					data.emplace_back();
+
+					for ( i32 argIdx = 0, argCount = static_cast<i32>( node->children.size() ); argIdx < argCount; ++argIdx )
+						data[ node->scope ][ funcNode->right->children[ argIdx ]->value.valueString ] = node->children[ argIdx ]->value;
+
+					// -- process the codeblock of the function --
+					Value value;
+					for ( auto child : funcNode->children )
+					{
+						value = run( child );
+						if ( child->type == NodeType::Return )
+						{
+							data.pop_back();
+							return value;
+						}
+					}
+					data.pop_back();
+					return value;
+				}
+			}
+			else
+			{
+				std::cerr << "[Interpreter] Not callable (" << node->left->value.valueString << ")" << std::endl;
+			}
+		}
 		break;
 
 	case NodeType::Return:
@@ -70,6 +149,29 @@ Value Interpreter::run( Node *node )
 	}
 
 	return Value();
+}
+
+Value &Interpreter::get_value( Node *node )
+{
+	for ( i32 scope = node->scope; scope >= 0; --scope )
+	{
+		auto iter = data[ scope ].find( node->value.valueString );
+		if ( iter != data[ scope ].end() )
+			return iter->second;
+	}
+	std::cerr << "[Interpreter] Variable unknown (" << node->value.valueString << ")" << std::endl;
+	exit( RESULT_CODE_VARIABLE_UNKNOWN );
+}
+
+Value &Interpreter::get_or_create_value( Node *node )
+{
+	for ( i32 scope = node->scope; scope >= 0; --scope )
+	{
+		auto iter = data[ scope ].find( node->value.valueString );
+		if ( iter != data[ scope ].end() )
+			return iter->second;
+	}
+	return data[ node->scope ][ node->value.valueString ];
 }
 
 void Interpreter::cleanup()
