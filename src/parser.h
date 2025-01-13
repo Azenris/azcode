@@ -18,9 +18,12 @@ enum class NodeType
 	Assignment,
 	AssignmentOp,
 	Operation,
+	Equal,
+	NotEqual,
 	DeclFunc,
 	FunctionArgs,
 	FunctionCall,
+	If,
 	Return,
 };
 

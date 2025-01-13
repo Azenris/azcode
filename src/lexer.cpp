@@ -160,7 +160,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::Equal, .line = lexer->line };
+				return { .id = TokenID::DoubleAssign, .line = lexer->line };
 			}
 			lexer->txt += 1;
 			return { .id = TokenID::Assign, .line = lexer->line };

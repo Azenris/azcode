@@ -3,6 +3,23 @@
 
 #include "interpreter.h"
 
+static Value process_codeblock( Interpreter *interpreter, Node *node )
+{
+	interpreter->data.emplace_back();
+	Value value;
+	for ( auto child : node->children )
+	{
+		value = interpreter->run( child );
+		if ( child->type == NodeType::Return )
+		{
+			interpreter->data.pop_back();
+			return value;
+		}
+	}
+	interpreter->data.pop_back();
+	return value;
+}
+
 Value Interpreter::run( Node *node )
 {
 	switch ( node->type )
@@ -23,32 +40,14 @@ Value Interpreter::run( Node *node )
 			{
 				value = run( child );
 				if ( child->type == NodeType::Return )
-				{
-					data.pop_back();
 					return value;
-				}
 			}
 			return value;
 		}
 		break;
 
 	case NodeType::Block:
-		{
-			data.emplace_back();
-			Value value;
-			for ( auto child : node->children )
-			{
-				value = run( child );
-				if ( child->type == NodeType::Return )
-				{
-					data.pop_back();
-					return value;
-				}
-			}
-			data.pop_back();
-			return value;
-		}
-		break;
+		return process_codeblock( this, node );
 
 	case NodeType::EndStatement:
 		break;
@@ -92,6 +91,12 @@ Value Interpreter::run( Node *node )
 		case TokenID::Percent:			return run( node->left ) % run( node->right ); break;
 		}
 		break;
+
+	case NodeType::Equal:
+		return run( node->left ) == run( node->right );
+
+	case NodeType::NotEqual:
+		return run( node->left ) != run( node->right );
 
 	case NodeType::DeclFunc:
 		get_or_create_value( node->left ) = node;
@@ -141,6 +146,18 @@ Value Interpreter::run( Node *node )
 			}
 		}
 		break;
+
+	case NodeType::If:
+		{
+			if ( run( node->left ) )
+			{
+				return process_codeblock( this, node );
+			}
+			else if ( node->right )
+			{
+				return process_codeblock( this, node->right );
+			}
+		}
 
 	case NodeType::Return:
 		return run( node->left );

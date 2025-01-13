@@ -22,6 +22,18 @@ constexpr i32 TypeShift = 16;
 
 struct Value
 {
+	ValueType type;
+
+	union
+	{
+		i32 valueI32;
+		i64 valueI64;
+		Node *valueNode;
+	};
+
+	std::string valueString;
+
+	// -- --
 	Value()
 		: type( ValueType::Undefined )
 	{
@@ -69,16 +81,19 @@ struct Value
 	{
 	}
 
-	ValueType type;
-
-	union
+	operator bool()
 	{
-		i32 valueI32;
-		i64 valueI64;
-		Node *valueNode;
-	};
-
-	std::string valueString;
+		switch ( type )
+		{
+		case ValueType::Undefined: return false;
+		case ValueType::NumberI32: return valueI32 != 0;
+		case ValueType::NumberI64: return valueI64 != 0;
+		case ValueType::StringLiteral: return !valueString.empty();
+		case ValueType::KeywordID: return true;
+		case ValueType::Node: return valueNode;
+		}
+		return false;
+	}
 };
 
 std::ostream & operator << ( std::ostream &out, const Value &value );

@@ -19,6 +19,8 @@ static std::unordered_map<std::string, KeywordID> KeywordsMap =
 	{ "return", KeywordID::Return },
 	{ "false", KeywordID::False },
 	{ "true", KeywordID::True },
+	{ "if", KeywordID::If },
+	{ "else", KeywordID::Else },
 };
 
 const KeywordType *get_keyword( const char *keyword )

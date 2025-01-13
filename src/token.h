@@ -10,6 +10,8 @@ enum class KeywordID
 	Return,
 	False,
 	True,
+	If,
+	Else,
 };
 
 struct KeywordType
@@ -37,6 +39,14 @@ constexpr KeywordType Keywords[] =
 	{
 		.id = KeywordID::True,
 		.name = "True",
+	},
+	{
+		.id = KeywordID::If,
+		.name = "If",
+	},
+	{
+		.id = KeywordID::Else,
+		.name = "Else",
 	},
 };
 
@@ -73,7 +83,7 @@ enum class TokenID
 	DoubleAmp,
 	DoublePipe,
 	Assign,
-	Equal,
+	DoubleAssign,
 	GreaterThan,
 	GreaterOrEqual,
 	LesserThan,
@@ -238,8 +248,8 @@ constexpr TokenType TokenTypes[] =
 		.symbol = "=",
 	},
 	{
-		.id = TokenID::Equal,
-		.name = "Equal",
+		.id = TokenID::DoubleAssign,
+		.name = "DoubleAssign",
 		.symbol = "==",
 	},
 	{

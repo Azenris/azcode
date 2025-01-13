@@ -108,9 +108,77 @@ static Node *parser_parse_operator( Parser *parser, Node *node )
 			}
 		}
 		break;
+
+	case TokenID::DoubleAssign:
+		{
+			Token *token = parser_consume( parser, TokenID::DoubleAssign );
+			Node *equal = new_node( parser, NodeType::Equal, token );
+			equal->left = node;
+			equal->right = parser_parse( parser );
+			return equal;
+		}
+		break;
+
+	case TokenID::ExclamationAssign:
+		{
+			Token *token = parser_consume( parser, TokenID::ExclamationAssign );
+			Node *notEqual = new_node( parser, NodeType::NotEqual, token );
+			notEqual->left = node;
+			notEqual->right = parser_parse( parser );
+			return notEqual;
+		}
+		break;
 	}
 
 	return node;
+}
+
+static Node *parser_parse_func_args( Parser *parser )
+{
+	Node *args = new_node( parser, NodeType::FunctionArgs, nullptr );
+
+	parser_ignore( parser, TokenID::NewLine );
+	parser_consume( parser, TokenID::ParenOpen );
+	parser_ignore( parser, TokenID::NewLine );
+
+	if ( parser->token->id != TokenID::ParenClose )
+	{
+		args->children.push_back( parser_parse( parser ) );
+		parser_ignore( parser, TokenID::NewLine );
+
+		while ( parser->token->id == TokenID::Comma )
+		{
+			parser_consume( parser, TokenID::Comma );
+			parser_ignore( parser, TokenID::NewLine );
+			args->children.push_back( parser_parse( parser ) );
+			parser_ignore( parser, TokenID::NewLine );
+		}
+	}
+
+	parser_consume( parser, TokenID::ParenClose );
+
+	if ( args->children.empty() )
+	{
+		delete args;
+		args = nullptr;
+	}
+
+	return args;
+}
+
+static void parser_parse_codeblock( Parser *parser, Node *node )
+{
+	parser_ignore( parser, TokenID::NewLine );
+	parser_consume( parser, TokenID::BraceOpen );
+	parser_ignore( parser, TokenID::NewLine );
+
+	while ( parser->token->id != TokenID::BraceClose )
+	{
+		node->children.push_back( parser_parse( parser ) );
+		parser_ignore( parser, TokenID::NewLine );
+	}
+
+	parser_consume( parser, TokenID::BraceClose );
 }
 
 static Node *parser_parse_keyword( Parser *parser )
@@ -148,43 +216,35 @@ static Node *parser_parse_keyword( Parser *parser )
 			node->value = 1;
 			return node;
 		}
+
+	case KeywordID::If:
+		{
+			Node *node = new_node( parser, NodeType::If, token );
+			token = parser_consume( parser, TokenID::ParenOpen );
+			parser_ignore( parser, TokenID::NewLine );
+			// condition
+			node->left = parser_parse( parser );
+			parser_ignore( parser, TokenID::NewLine );
+			parser_consume( parser, TokenID::ParenClose );
+			parser->scope += 1;
+			// if codeblock
+			parser_parse_codeblock( parser, node );
+			parser_ignore( parser, TokenID::NewLine );
+			// else codeblock (if any)
+			if ( parser->token->id == TokenID::Keyword && static_cast<KeywordID>( parser->token->value.valueI32 ) == KeywordID::Else )
+			{
+				parser_consume( parser, TokenID::Keyword );
+				Node *elseCodeblock = new_node( parser, NodeType::Block, nullptr );
+				node->right = elseCodeblock;
+				parser_parse_codeblock( parser, elseCodeblock );
+			}
+			parser->scope -= 1;
+			return node;
+		}
 	}
 
 	std::cerr << "[Parser] Unexpected keyword token( " << *parser->token << " )." << std::endl;
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-}
-
-static Node *parser_parse_func_args( Parser *parser )
-{
-	Node *args = new_node( parser, NodeType::FunctionArgs, nullptr );
-
-	parser_ignore( parser, TokenID::NewLine );
-	parser_consume( parser, TokenID::ParenOpen );
-	parser_ignore( parser, TokenID::NewLine );
-
-	if ( parser->token->id != TokenID::ParenClose )
-	{
-		args->children.push_back( parser_parse( parser ) );
-		parser_ignore( parser, TokenID::NewLine );
-
-		while ( parser->token->id == TokenID::Comma )
-		{
-			parser_consume( parser, TokenID::Comma );
-			parser_ignore( parser, TokenID::NewLine );
-			args->children.push_back( parser_parse( parser ) );
-			parser_ignore( parser, TokenID::NewLine );
-		}
-	}
-
-	parser_consume( parser, TokenID::ParenClose );
-
-	if ( args->children.empty() )
-	{
-		delete args;
-		args = nullptr;
-	}
-
-	return args;
 }
 
 static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nullptr )
@@ -222,7 +282,7 @@ static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nul
 				}
 			}
 			parser_consume( parser, TokenID::ParenClose );
-			return func;
+			node = func;
 		}
 		break;
 
@@ -239,36 +299,19 @@ static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nul
 			Node *op = new_node( parser, NodeType::AssignmentOp, token );
 			op->left = node;
 			op->right = parser_parse( parser );
-			return op;
+			node = op;
 		}
 		break;
 
 	case TokenID::ColonAssign:
 		{
 			parser->scope += 1;
-
 			token = parser_consume( parser, TokenID::ColonAssign );
 			Node *declFunc = new_node( parser, NodeType::DeclFunc, token );
 			declFunc->left = node;
 			declFunc->right = parser_parse_func_args( parser );
-
-			parser_ignore( parser, TokenID::NewLine );
-
-			// -- get func codeblock --
-			parser_consume( parser, TokenID::BraceOpen );
-
-			parser_ignore( parser, TokenID::NewLine );
-
-			while ( parser->token->id != TokenID::BraceClose )
-			{
-				declFunc->children.push_back( parser_parse( parser ) );
-				parser_ignore( parser, TokenID::NewLine );
-			}
-
+			parser_parse_codeblock( parser, declFunc );
 			parser->scope -= 1;
-
-			parser_consume( parser, TokenID::BraceClose );
-
 			return declFunc;
 		}
 		break;
@@ -432,9 +475,9 @@ static Node *parser_parse_assign( Parser *parser )
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
-static Node *parser_parse_equal( Parser *parser )
+static Node *parser_parse_doubleequal( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected equal token( " << *parser->token << " )." << std::endl;
+	std::cerr << "[Parser] Unexpected doubleequal token( " << *parser->token << " )." << std::endl;
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
@@ -597,7 +640,7 @@ static Node *parser_parse( Parser *parser )
 	case TokenID::DoubleAmp: return parser_parse_doubleamp( parser );
 	case TokenID::DoublePipe: return parser_parse_doublepipe( parser );
 	case TokenID::Assign: return parser_parse_assign( parser );
-	case TokenID::Equal: return parser_parse_equal( parser );
+	case TokenID::DoubleAssign: return parser_parse_doubleequal( parser );
 	case TokenID::GreaterThan: return parser_parse_greaterthan( parser );
 	case TokenID::GreaterOrEqual: return parser_parse_greaterorequal( parser );
 	case TokenID::LesserThan: return parser_parse_lesserthan( parser );
