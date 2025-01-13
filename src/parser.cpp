@@ -466,15 +466,11 @@ static Node *parser_parse_parenopen( Parser *parser )
 
 	parser_ignore( parser, TokenID::NewLine );
 
-	parser->scope += 1;
-
 	while ( parser->token->id != TokenID::ParenClose )
 	{
 		node->children.push_back( parser_parse( parser ) );
 		parser_ignore( parser, TokenID::NewLine );
 	}
-
-	parser->scope -= 1;
 
 	parser_consume( parser, TokenID::ParenClose );
 	parser_ignore( parser, TokenID::NewLine );
@@ -490,6 +486,8 @@ static Node *parser_parse_parenclose( Parser *parser )
 
 static Node *parser_parse_braceopen( Parser *parser )
 {
+	parser->scope += 1;
+
 	Token *token = parser_consume( parser, TokenID::BraceOpen );
 	Node *node = new_node( parser, NodeType::Block, token );
 
@@ -502,6 +500,8 @@ static Node *parser_parse_braceopen( Parser *parser )
 	}
 
 	parser_consume( parser, TokenID::BraceClose );
+
+	parser->scope -= 1;
 
 	return node;
 }

@@ -110,17 +110,17 @@ Value Interpreter::run( Node *node )
 				{
 					if ( funcNode->right->children.size() != node->children.size() )
 					{
-						std::cerr << "[Interpreter] Function wants " << funcNode->right->children.size() << " args, but was given " << node->children.size() << " args." << std::endl;
+						std::cerr << "[Interpreter] Function wants " << funcNode->right->children.size() << " args, but was given " << node->children.size() << " args. (Line: " << node->token->line << ")" << std::endl;
 						exit( RESULT_CODE_FUNCTION_ARG_COUNT );
 					}
-
-					assert( node->scope == static_cast<i32>( data.size() - 1 ) );
 
 					// -- setup arguments --
 					data.emplace_back();
 
+					assert( funcNode->scope == static_cast<i32>( data.size() - 1 ) );
+
 					for ( i32 argIdx = 0, argCount = static_cast<i32>( node->children.size() ); argIdx < argCount; ++argIdx )
-						data[ node->scope ][ funcNode->right->children[ argIdx ]->value.valueString ] = node->children[ argIdx ]->value;
+						data[ funcNode->scope ][ funcNode->right->children[ argIdx ]->value.valueString ] = run( node->children[ argIdx ] );
 
 					// -- process the codeblock of the function --
 					Value value;
@@ -139,7 +139,7 @@ Value Interpreter::run( Node *node )
 			}
 			else
 			{
-				std::cerr << "[Interpreter] Not callable (" << node->left->value.valueString << ")" << std::endl;
+				std::cerr << "[Interpreter] Not callable \"" << node->left->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
 			}
 		}
 		break;
@@ -159,7 +159,7 @@ Value &Interpreter::get_value( Node *node )
 		if ( iter != data[ scope ].end() )
 			return iter->second;
 	}
-	std::cerr << "[Interpreter] Variable unknown (" << node->value.valueString << ")" << std::endl;
+	std::cerr << "[Interpreter] Variable unknown \"" << node->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
 	exit( RESULT_CODE_VARIABLE_UNKNOWN );
 }
 
