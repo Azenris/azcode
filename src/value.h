@@ -4,6 +4,8 @@
 #include <string>
 #include <iosfwd>
 
+struct Node;
+
 enum class ValueType
 {
 	Undefined,
@@ -11,6 +13,7 @@ enum class ValueType
 	NumberI64,
 	StringLiteral,
 	KeywordID,
+	Node,
 };
 
 constexpr i32 TypeShift = 16;
@@ -60,12 +63,19 @@ struct Value
 	{
 	}
 
+	Value( Node *node )
+		: type( ValueType::Node )
+		, valueNode( node )
+	{
+	}
+
 	ValueType type;
 
 	union
 	{
 		i32 valueI32;
 		i64 valueI64;
+		Node *valueNode;
 	};
 
 	std::string valueString;

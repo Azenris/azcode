@@ -63,13 +63,13 @@ int main( int argc, char *argv[] )
 	Interpreter interpreter;
 
 	lexer.run( std::move( data ) );
-	std::cout << "lexer finished." << std::endl;
+	//std::cout << "lexer finished." << std::endl;
 
 	parser.run( std::move( lexer.tokens ) );
-	std::cout << "Parser finished." << std::endl;
+	//std::cout << "Parser finished." << std::endl;
 
 	i32 ret = interpreter.run( parser.root ).valueI32;
-	std::cout << "Interpreter finished." << std::endl;
+	//std::cout << "Interpreter finished." << std::endl;
 
 	lexer.cleanup();
 	parser.cleanup();

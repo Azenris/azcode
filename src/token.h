@@ -85,6 +85,7 @@ enum class TokenID
 	Period,
 	Comma,
 	Colon,
+	ColonAssign,
 	SemiColon,
 	NewLine,
 	EndOfFile,
@@ -295,6 +296,11 @@ constexpr TokenType TokenTypes[] =
 		.id = TokenID::Colon,
 		.name = "Colon",
 		.symbol = ":",
+	},
+	{
+		.id = TokenID::ColonAssign,
+		.name = "ColonAssign",
+		.symbol = ":=",
 	},
 	{
 		.id = TokenID::SemiColon,

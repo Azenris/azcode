@@ -272,6 +272,11 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			return { .id = TokenID::Comma, .line = lexer->line };
 
 		case ':':
+			if ( *( lexer->txt + 1 ) == '=' )
+			{
+				lexer->txt += 2;
+				return { .id = TokenID::ColonAssign, .line = lexer->line };
+			}
 			lexer->txt += 1;
 			return { .id = TokenID::Colon, .line = lexer->line };
 

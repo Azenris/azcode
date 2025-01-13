@@ -6,7 +6,7 @@
 // Forward Decl
 static Node *parser_parse( Parser *parser );
 
-static Node *new_node( NodeType type, Token *token )
+static Node *new_node( Parser *parser, NodeType type, Token *token )
 {
 	Node *node = new Node;
 	node->type = type;
@@ -14,6 +14,7 @@ static Node *new_node( NodeType type, Token *token )
 	node->value = token ? token->value : nullptr;
 	node->left = nullptr;
 	node->right = nullptr;
+	node->scope = parser->scope;
 	return node;
 }
 
@@ -91,7 +92,7 @@ static Node *parser_parse_operator( Parser *parser, Node *node )
 	case TokenID::Percent:
 		{
 			Token *token = parser_consume( parser, parser->token->id );
-			Node *op = new_node( NodeType::Operation, token );
+			Node *op = new_node( parser, NodeType::Operation, token );
 			op->left = node;
 			Node *right = parser_parse( parser );
 			op->right = right;
@@ -120,10 +121,10 @@ static Node *parser_parse_keyword( Parser *parser )
 	{
 	case KeywordID::Return:
 		{
-			Node *node = new_node( NodeType::Return, token );
+			Node *node = new_node( parser, NodeType::Return, token );
 			if ( parser->token->id == TokenID::NewLine )
 			{
-				Node *returnNodeValue = new_node( NodeType::Number, nullptr );
+				Node *returnNodeValue = new_node( parser, NodeType::Number, nullptr );
 				returnNodeValue->value = 0;
 				node->left = returnNodeValue;
 			}
@@ -136,14 +137,14 @@ static Node *parser_parse_keyword( Parser *parser )
 
 	case KeywordID::False:
 		{
-			Node *node = new_node( NodeType::Number, token );
+			Node *node = new_node( parser, NodeType::Number, token );
 			node->value = 0;
 			return node;
 		}
 
 	case KeywordID::True:
 		{
-			Node *node = new_node( NodeType::Number, token );
+			Node *node = new_node( parser, NodeType::Number, token );
 			node->value = 1;
 			return node;
 		}
@@ -153,17 +154,50 @@ static Node *parser_parse_keyword( Parser *parser )
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
+static Node *parser_parse_func_args( Parser *parser )
+{
+	Node *args = new_node( parser, NodeType::FunctionArgs, nullptr );
+
+	parser_ignore( parser, TokenID::NewLine );
+	parser_consume( parser, TokenID::ParenOpen );
+	parser_ignore( parser, TokenID::NewLine );
+
+	if ( parser->token->id != TokenID::ParenClose )
+	{
+		args->children.push_back( parser_parse( parser ) );
+		parser_ignore( parser, TokenID::NewLine );
+
+		while ( parser->token->id == TokenID::Comma )
+		{
+			parser_consume( parser, TokenID::Comma );
+			parser_ignore( parser, TokenID::NewLine );
+			args->children.push_back( parser_parse( parser ) );
+			parser_ignore( parser, TokenID::NewLine );
+		}
+	}
+
+	parser_consume( parser, TokenID::ParenClose );
+
+	if ( args->children.empty() )
+	{
+		delete args;
+		args = nullptr;
+	}
+
+	return args;
+}
+
 static Node *parser_parse_identifier( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::Identifier );
-	Node *node = new_node( NodeType::Identifier, token );
+	Node *node = new_node( parser, NodeType::Identifier, token );
 
 	switch ( parser->token->id )
 	{
 	case TokenID::Assign:
 		{
 			parser_consume( parser, TokenID::Assign );
-			Node *assignment = new_node( NodeType::Assignment, parser->token );
+			Node *assignment = new_node( parser, NodeType::Assignment, parser->token );
 			assignment->left = node;
 			assignment->right = parser_parse( parser );
 			return assignment;
@@ -173,7 +207,7 @@ static Node *parser_parse_identifier( Parser *parser )
 	case TokenID::ParenOpen:
 		{
 			parser_consume( parser, TokenID::ParenOpen );
-			Node *func = new_node( NodeType::FunctionCall, parser->token );
+			Node *func = new_node( parser, NodeType::FunctionCall, parser->token );
 			func->left = node;
 			if ( parser->token->id != TokenID::ParenClose )
 			{
@@ -199,10 +233,40 @@ static Node *parser_parse_identifier( Parser *parser )
 	case TokenID::PercentAssign:
 		{
 			token = parser_consume( parser, parser->token->id );
-			Node *op = new_node( NodeType::AssignmentOp, token );
+			Node *op = new_node( parser, NodeType::AssignmentOp, token );
 			op->left = node;
 			op->right = parser_parse( parser );
 			return op;
+		}
+		break;
+
+	case TokenID::ColonAssign:
+		{
+			token = parser_consume( parser, TokenID::ColonAssign );
+			Node *declFunc = new_node( parser, NodeType::DeclFunc, token );
+			declFunc->left = node;
+			declFunc->right = parser_parse_func_args( parser );
+
+			parser_ignore( parser, TokenID::NewLine );
+
+			// -- get code block --
+			parser_consume( parser, TokenID::BraceOpen );
+
+			parser_ignore( parser, TokenID::NewLine );
+
+			parser->scope += 1;
+
+			while ( parser->token->id != TokenID::BraceClose )
+			{
+				declFunc->children.push_back( parser_parse( parser ) );
+				parser_ignore( parser, TokenID::NewLine );
+			}
+
+			parser->scope -= 1;
+
+			parser_consume( parser, TokenID::BraceClose );
+
+			return declFunc;
 		}
 		break;
 	}
@@ -215,14 +279,14 @@ static Node *parser_parse_identifier( Parser *parser )
 static Node *parser_parse_stringliteral( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::StringLiteral );
-	Node *node = new_node( NodeType::StringLiteral, token );
+	Node *node = new_node( parser, NodeType::StringLiteral, token );
 	return node;
 }
 
 static Node *parser_parse_number( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::Number );
-	Node *node = new_node( NodeType::Number, token );
+	Node *node = new_node( parser, NodeType::Number, token );
 	node = parser_parse_operator( parser, node );
 	return node;
 }
@@ -398,13 +462,24 @@ static Node *parser_parse_lesserorequal( Parser *parser )
 static Node *parser_parse_parenopen( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::ParenOpen );
-	Node *node = new_node( NodeType::Block, token );
-	node->children.push_back( parser_parse( parser ) );
+	Node *node = new_node( parser, NodeType::Block, token );
+
+	parser_ignore( parser, TokenID::NewLine );
+
+	parser->scope += 1;
+
 	while ( parser->token->id != TokenID::ParenClose )
+	{
 		node->children.push_back( parser_parse( parser ) );
+		parser_ignore( parser, TokenID::NewLine );
+	}
+
+	parser->scope -= 1;
+
 	parser_consume( parser, TokenID::ParenClose );
-	node = parser_parse_operator( parser, node );
-	return node;
+	parser_ignore( parser, TokenID::NewLine );
+
+	return parser_parse_operator( parser, node );
 }
 
 static Node *parser_parse_parenclose( Parser *parser )
@@ -416,14 +491,18 @@ static Node *parser_parse_parenclose( Parser *parser )
 static Node *parser_parse_braceopen( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::BraceOpen );
-	Node *node = new_node( NodeType::Block, token );
-	node->children.push_back( parser_parse( parser ) );
+	Node *node = new_node( parser, NodeType::Block, token );
+
+	parser_ignore( parser, TokenID::NewLine );
+
 	while ( parser->token->id != TokenID::BraceClose )
 	{
-		parser_ignore( parser, TokenID::NewLine );
 		node->children.push_back( parser_parse( parser ) );
+		parser_ignore( parser, TokenID::NewLine );
 	}
+
 	parser_consume( parser, TokenID::BraceClose );
+
 	return node;
 }
 
@@ -451,6 +530,12 @@ static Node *parser_parse_colon( Parser *parser )
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
+static Node *parser_parse_colonassign( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected colonassign token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
 static Node *parser_parse_semicolon( Parser *parser )
 {
 	std::cerr << "[Parser] Unexpected semicolon token( " << *parser->token << " )." << std::endl;
@@ -460,7 +545,7 @@ static Node *parser_parse_semicolon( Parser *parser )
 static Node *parser_parse_newline( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::NewLine );
-	Node *node = new_node( NodeType::EndStatement, token );
+	Node *node = new_node( parser, NodeType::EndStatement, token );
 	return node;
 }
 
@@ -513,6 +598,7 @@ static Node *parser_parse( Parser *parser )
 	case TokenID::Period: return parser_parse_period( parser );
 	case TokenID::Comma: return parser_parse_comma( parser );
 	case TokenID::Colon: return parser_parse_colon( parser );
+	case TokenID::ColonAssign: return parser_parse_colonassign( parser );
 	case TokenID::SemiColon: return parser_parse_semicolon( parser );
 	case TokenID::NewLine: return parser_parse_newline( parser );
 	case TokenID::EndOfFile: return parser_parse_endoffile( parser );
@@ -526,8 +612,9 @@ void Parser::run( std::vector<Token> tokensIn )
 {
 	tokens = std::move( tokensIn );
 	tokenIndex = 0;
+	scope = 0;
 	token = &tokens[ tokenIndex ];
-	root = new_node( NodeType::Block, nullptr );
+	root = new_node( this, NodeType::Block, nullptr );
 
 	// std::cout << "[Tokens]" << std::endl;
 	// for ( Token &t : tokens )
@@ -553,7 +640,7 @@ void Parser::run( std::vector<Token> tokensIn )
 
 	if ( lastNode->token->id != TokenID::Keyword || lastNode->value.valueString != "return" )
 	{
-		Node *returnNode = new_node( NodeType::Number, nullptr );
+		Node *returnNode = new_node( this, NodeType::Number, nullptr );
 		returnNode->value = static_cast<i32>( 0 );
 		root->children.push_back( returnNode );
 	}

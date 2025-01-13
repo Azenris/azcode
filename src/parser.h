@@ -5,6 +5,7 @@
 
 #include "lexer.h"
 #include "result_code.h"
+#include "token.h"
 
 enum class NodeType
 {
@@ -16,6 +17,8 @@ enum class NodeType
 	Assignment,
 	AssignmentOp,
 	Operation,
+	DeclFunc,
+	FunctionArgs,
 	FunctionCall,
 	Return,
 };
@@ -28,15 +31,18 @@ struct Node
 	Node *right;
 	Value value;
 	std::vector<Node*> children;
+	i32 scope;
 };
 
 struct Parser
 {
 	void run( std::vector<Token> tokens );
+
 	void cleanup();
 
 	std::vector<Token> tokens;
 	Token *token;
 	i32 tokenIndex;
+	i32 scope;
 	Node *root;
 };
