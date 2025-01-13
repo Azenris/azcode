@@ -113,9 +113,10 @@ Value Interpreter::run( Node *node )
 				Node *funcNode = call.valueNode;
 				if ( funcNode )
 				{
-					if ( funcNode->right->children.size() != node->children.size() )
+					if ( ( funcNode->right ? funcNode->right->children.size() : 0 ) != node->children.size() )
 					{
-						std::cerr << "[Interpreter] Function wants " << funcNode->right->children.size() << " args, but was given " << node->children.size() << " args. (Line: " << node->token->line << ")" << std::endl;
+						std::cerr << "[Interpreter] Function wants " << ( funcNode->right ? funcNode->right->children.size() : 0 )
+							<< " args, but was given " << node->children.size() << " args. (Line: " << node->token->line << ")" << std::endl;
 						exit( RESULT_CODE_FUNCTION_ARG_COUNT );
 					}
 

@@ -37,6 +37,17 @@ static Token *parser_ignore( Parser *parser, TokenID tokenID )
 	return parser->token;
 }
 
+static void add_return_if_needed( Parser *parser, Node *node )
+{
+	if ( node->children.empty() || node->children.back()->token->id != TokenID::Keyword || node->children.back()->value.valueI32 != static_cast<i32>( KeywordID::Return ) )
+	{
+		// Implicit return will return the value 0
+		Node *returnNode = new_node( parser, NodeType::Number, nullptr );
+		returnNode->value = static_cast<i32>( 0 );
+		node->children.push_back( returnNode );
+	}
+}
+
 static i32 get_operator_precedence( TokenID tokenID )
 {
 	switch ( tokenID )
@@ -323,6 +334,7 @@ static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nul
 			declFunc->left = node;
 			declFunc->right = parser_parse_func_args( parser );
 			parser_parse_codeblock( parser, declFunc );
+			add_return_if_needed( parser, declFunc );
 			return declFunc;
 		}
 		break;
@@ -698,15 +710,7 @@ void Parser::run( std::vector<Token> tokensIn )
 		exit( RESULT_CODE_EMPTY_SCRIPT );
 	}
 
-	// TODO : functions will need a version of this too, but not all blocks will
-	Node *lastNode = root->children.back();
-
-	if ( lastNode->token->id != TokenID::Keyword || lastNode->value.valueString != "return" )
-	{
-		Node *returnNode = new_node( this, NodeType::Number, nullptr );
-		returnNode->value = static_cast<i32>( 0 );
-		root->children.push_back( returnNode );
-	}
+	add_return_if_needed( this, root );
 }
 
 void Parser::cleanup()
