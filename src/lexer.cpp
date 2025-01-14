@@ -298,13 +298,14 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 				// TODO : do in a loop and concat any strings placed next to each other
 				lexer->str.clear();
 
-				if ( *lexer->txt != '"' )
+				if ( *++lexer->txt != '"' )
 				{
-					const char *start = ++lexer->txt;
+					const char *start = lexer->txt;
 					u64 len = 0;
 					char p;
+					c = *start;
 
-					while ( c != '"' );
+					while ( c != '"' )
 					{
 						p = c;
 						len += 1;
@@ -326,7 +327,6 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 							len = 0;
 							c = *start;
 						}
-
 					}
 
 					lexer->str.append( start, len );
