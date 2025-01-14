@@ -239,24 +239,39 @@ static Node *parser_parse_keyword( Parser *parser )
 	case KeywordID::If:
 		{
 			Node *node = new_node( parser, NodeType::If, token );
-			token = parser_consume( parser, TokenID::ParenOpen );
-			parser_ignore( parser, TokenID::NewLine );
-			// condition
-			node->left = parser_parse( parser );
-			parser_ignore( parser, TokenID::NewLine );
-			parser_consume( parser, TokenID::ParenClose );
-			// if
-			parser_parse_codeblock( parser, node );
-			parser_ignore( parser, TokenID::NewLine );
-			if ( parser->token->id == TokenID::Keyword && static_cast<KeywordID>( parser->token->value.valueI32 ) == KeywordID::Else )
+			parser_consume( parser, TokenID::ParenOpen );
+			Node *top = node;
+			while ( node )
 			{
-				parser_consume( parser, TokenID::Keyword );
-				if ( parser->token->id == TokenID::Keyword && static_cast<KeywordID>( parser->token->value.valueI32 ) == KeywordID::If )
+				// condition
+				node->left = parser_parse( parser );
+				parser_ignore( parser, TokenID::NewLine );
+				parser_consume( parser, TokenID::ParenClose );
+				// if
+				parser_parse_codeblock( parser, node );
+				parser_ignore( parser, TokenID::NewLine );
+				if ( parser->token->id == TokenID::Keyword && static_cast<KeywordID>( parser->token->value.valueI32 ) == KeywordID::Else )
 				{
-					// else if
-					node->right = parser_parse_keyword( parser );
+					parser_consume( parser, TokenID::Keyword );
+					if ( parser->token->id == TokenID::Keyword && static_cast<KeywordID>( parser->token->value.valueI32 ) == KeywordID::If )
+					{
+						// else if
+						token = parser_consume( parser, TokenID::Keyword );
+						node->right = new_node( parser, NodeType::If, token );
+						parser_consume( parser, TokenID::ParenOpen );
+						node = node->right;
+					}
+					else
+					{
+						// else
+						node->right = new_node( parser, NodeType::Block, nullptr );
+						parser_parse_codeblock( parser, node->right );
+						node = nullptr;
+					}
 				}
-				else
+			}
+			return top;
+		}
 
 	case KeywordID::Print:
 		{
