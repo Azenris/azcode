@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 #include <iosfwd>
 
 #include "ids.h"
@@ -24,10 +25,12 @@ struct Value
 		i32 valueI32;
 		i64 valueI64;
 		Node *valueNode;
+		Value *valueRef;
 	};
 
 	std::string valueString;
 	std::vector<Value> arr;
+	std::unordered_map<std::string, Value> map;
 
 	// -- --
 	Value()
@@ -89,10 +92,18 @@ struct Value
 	{
 	}
 
+	Value( Value *value )
+		: type( ValueType::Reference )
+		, valueRef( value )
+	{
+	}
+
 	operator bool();
 	explicit operator i64();
+	explicit operator std::string();
 	Value &operator [] ( i64 index );
 	i64 count() const;
+	void clear();
 };
 
 std::ostream & operator << ( std::ostream &out, const Value &value );

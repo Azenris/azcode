@@ -11,7 +11,7 @@ static Value process_codeblock( Interpreter *interpreter, Node *node )
 	for ( auto child : node->children )
 	{
 		value = interpreter->run( child );
-		if ( child->type == NodeType::Return )
+		if ( child->type == NodeID::Return )
 		{
 			interpreter->data.pop_back();
 			return value;
@@ -54,8 +54,10 @@ static void print_string( Interpreter *interpreter, Node *node )
 					exit( RESULT_CODE_PRINT_FORMAT_TOKEN_ID_UNEXPECTED );
 				}
 			}
-
-			fmt += 1;
+			else
+			{
+				fmt += 1;
+			}
 		}
 		std::cout << std::string_view( start, fmt - start );
 	}
@@ -66,11 +68,55 @@ static void print_string( Interpreter *interpreter, Node *node )
 	}
 }
 
+static Value callable( Interpreter *interpreter, Value &call, Node *node )
+{
+	Value value;
+
+	if ( call.type == ValueType::Node )
+	{
+		Node *funcNode = call.valueNode;
+		if ( funcNode )
+		{
+			if ( ( funcNode->right ? funcNode->right->children.size() : 0 ) != node->children.size() )
+			{
+				std::cerr << "[Interpreter] Function wants " << ( funcNode->right ? funcNode->right->children.size() : 0 )
+					<< " args, but was given " << node->children.size() << " args. (Line: " << node->token->line << ")" << std::endl;
+				exit( RESULT_CODE_FUNCTION_ARG_COUNT );
+			}
+
+			// -- setup arguments --
+			interpreter->data.emplace_back();
+
+			for ( i32 argIdx = 0, argCount = static_cast<i32>( node->children.size() ); argIdx < argCount; ++argIdx )
+				interpreter->data[ funcNode->scope ][ funcNode->right->children[ argIdx ]->value.valueString ] = interpreter->run( node->children[ argIdx ] );
+
+			// -- process the codeblock of the function --
+			for ( auto child : funcNode->children )
+			{
+				value = interpreter->run( child );
+				if ( child->type == NodeID::Return )
+				{
+					interpreter->data.pop_back();
+					return value;
+				}
+			}
+			interpreter->data.pop_back();
+		}
+	}
+	else
+	{
+		std::cerr << "[Interpreter] Not callable \"" << node->left->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
+		exit( RESULT_CODE_UNEXPECTED_NOT_CALLABLE );
+	}
+
+	return value;
+}
+
 Value Interpreter::run( Node *node )
 {
 	switch ( node->type )
 	{
-	case NodeType::Entry:
+	case NodeID::Entry:
 		{
 			data.clear();
 			data.push_back(
@@ -85,43 +131,94 @@ Value Interpreter::run( Node *node )
 			for ( auto child : node->children )
 			{
 				value = run( child );
-				if ( child->type == NodeType::Return )
+				if ( child->type == NodeID::Return )
 					return value;
 			}
 			return value;
 		}
 		break;
 
-	case NodeType::Block:
+	case NodeID::Block:
 		return process_codeblock( this, node );
 
-	case NodeType::Identifier:
+	case NodeID::Identifier:
 		return get_value( node );
 
-	case NodeType::StringLiteral:
+	case NodeID::StringLiteral:
 		return node->value;
 
-	case NodeType::Number:
+	case NodeID::Number:
 		return node->value;
 
-	case NodeType::CreateArray:
+	case NodeID::StructAssignment:
 		{
-			Value arr( ValueType::Arr );
+			Value &lwo = get_or_create_value( node->left );
+			lwo.clear();
+			lwo.type = ValueType::Struct;
+			for ( auto child : node->children )
+			{
+				switch ( child->type )
+				{
+				case NodeID::StructAssignment:
+					lwo.map[ child->left->value.valueString ] = child;
+					break;
+
+				case NodeID::DeclFunc:
+					lwo.map[ child->left->value.valueString ] = child;
+					break;
+
+				case NodeID::Assignment:
+					lwo.map[ child->left->value.valueString ] = run( child->right );
+					break;
+
+				default:
+					std::cerr << "[Interpreter] Unexpected struct assignment type \"" << child->type << "\" (Line: " << child->token->line << ")" << std::endl;
+					exit( RESULT_CODE_UNEXPECTED_STRUCT_ASSIGNMENT_TYPE );
+				}
+			}
+			return lwo;
+		}
+
+	case NodeID::Accessor:
+		return get_value( node->left ).map[ static_cast<std::string>( node->token->value ) ];
+
+	case NodeID::AccessorCall:
+		{
+			Value &value = get_value( node->left ).map[ static_cast<std::string>( node->token->value ) ];
+			return callable( this, value, node );
+		}
+
+	case NodeID::CreateArray:
+		{
+			Value &arr = get_or_create_value( node->left );
+			arr.clear();
+			arr.type = ValueType::Arr;
 			for ( auto child : node->children )
 				arr.arr.push_back( run( child ) );
 			return arr;
 		}
+		break;
 
-	case NodeType::ArrayAccess:
+	case NodeID::ArrayAccess:
 		return run( node->left )[ static_cast<i64>( run( node->right ) ) ];
 
-	case NodeType::Count:
-		return run( node->left ).count();
+	case NodeID::Count:
+		{
+			Value &value = get_value( node->left );
+			if ( value.type == ValueType::Struct )
+			{
+				auto iter = value.map.find( static_cast<std::string>( node->token->value ) );
+				if ( iter != value.map.end() )
+					return iter->second;
+			}
+			return value.count();
+		}
+		break;
 
-	case NodeType::Assignment:
+	case NodeID::Assignment:
 		return get_or_create_value( node->left ) = run( node->right );
 
-	case NodeType::AssignmentOp:
+	case NodeID::AssignmentOp:
 		switch ( node->token->id )
 		{
 		case TokenID::MinusAssign:		return get_value( node->left ) -= run( node->right ); break;
@@ -135,7 +232,7 @@ Value Interpreter::run( Node *node )
 		}
 		break;
 
-	case NodeType::Operation:
+	case NodeID::Operation:
 		switch ( node->token->id )
 		{
 		case TokenID::Minus:			return run( node->left ) - run( node->right ); break;
@@ -149,63 +246,23 @@ Value Interpreter::run( Node *node )
 		}
 		break;
 
-	case NodeType::Equal:
+	case NodeID::Equal:
 		return run( node->left ) == run( node->right );
 
-	case NodeType::NotEqual:
+	case NodeID::NotEqual:
 		return run( node->left ) != run( node->right );
 
-	case NodeType::DeclFunc:
+	case NodeID::DeclFunc:
 		get_or_create_value( node->left ) = node;
 		break;
 
-	case NodeType::FunctionArgs:
+	case NodeID::FunctionArgs:
 		break;
 
-	case NodeType::FunctionCall:
-		{
-			Value call = get_value( node->left );
-			if ( call.type == ValueType::Node )
-			{
-				Node *funcNode = call.valueNode;
-				if ( funcNode )
-				{
-					if ( ( funcNode->right ? funcNode->right->children.size() : 0 ) != node->children.size() )
-					{
-						std::cerr << "[Interpreter] Function wants " << ( funcNode->right ? funcNode->right->children.size() : 0 )
-							<< " args, but was given " << node->children.size() << " args. (Line: " << node->token->line << ")" << std::endl;
-						exit( RESULT_CODE_FUNCTION_ARG_COUNT );
-					}
+	case NodeID::FunctionCall:
+		return callable( this, get_value( node->left ), node );
 
-					// -- setup arguments --
-					data.emplace_back();
-
-					for ( i32 argIdx = 0, argCount = static_cast<i32>( node->children.size() ); argIdx < argCount; ++argIdx )
-						data[ funcNode->scope ][ funcNode->right->children[ argIdx ]->value.valueString ] = run( node->children[ argIdx ] );
-
-					// -- process the codeblock of the function --
-					Value value;
-					for ( auto child : funcNode->children )
-					{
-						value = run( child );
-						if ( child->type == NodeType::Return )
-						{
-							data.pop_back();
-							return value;
-						}
-					}
-					data.pop_back();
-					return value;
-				}
-			}
-			else
-			{
-				std::cerr << "[Interpreter] Not callable \"" << node->left->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
-			}
-		}
-		break;
-
-	case NodeType::If:
+	case NodeID::If:
 		{
 			if ( run( node->left ) )
 			{
@@ -218,10 +275,10 @@ Value Interpreter::run( Node *node )
 		}
 		break;
 
-	case NodeType::Return:
+	case NodeID::Return:
 		return run( node->left );
 
-	case NodeType::Print:
+	case NodeID::Print:
 		{
 			if ( node->children.empty() )
 			{
@@ -234,7 +291,7 @@ Value Interpreter::run( Node *node )
 		}
 		break;
 
-	case NodeType::Println:
+	case NodeID::Println:
 		{
 			if ( node->children.empty() )
 			{

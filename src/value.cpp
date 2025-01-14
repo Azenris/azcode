@@ -11,10 +11,12 @@ Value::operator bool()
 	case ValueType::NumberI32: return valueI32 != 0;
 	case ValueType::NumberI64: return valueI64 != 0;
 	case ValueType::StringLiteral: return !valueString.empty();
+	case ValueType::Struct: return !map.empty();
 	case ValueType::Arr: return !arr.empty();
 	case ValueType::TokenID: return true;
 	case ValueType::KeywordID: return true;
 	case ValueType::Node: return valueNode;
+	case ValueType::Reference: return static_cast<bool>( *valueRef );
 	}
 	return false;
 }
@@ -38,9 +40,27 @@ Value::operator i64()
 			}
 		}
 		break;
+
+	case ValueType::Reference:
+		return static_cast<i64>( *valueRef );
 	}
 
 	std::cerr << "Cannot convert from " << *this << " to i64." << std::endl;
+	exit( RESULT_CODE_VALUE_CANNOT_CONVERT );
+}
+
+Value::operator std::string()
+{
+	switch ( type )
+	{
+	case ValueType::Undefined: return "Undefined";
+	case ValueType::NumberI32: return std::to_string( valueI32 );
+	case ValueType::NumberI64: return std::to_string( valueI64 );
+	case ValueType::StringLiteral: return valueString;
+	case ValueType::Reference: return static_cast<std::string>( *valueRef );
+	}
+
+	std::cerr << "Cannot convert from " << *this << " to std::string." << std::endl;
 	exit( RESULT_CODE_VALUE_CANNOT_CONVERT );
 }
 
@@ -69,12 +89,22 @@ i64 Value::count() const
 	case ValueType::NumberI32: return 0;
 	case ValueType::NumberI64: return 0;
 	case ValueType::StringLiteral: return valueString.size();
+	case ValueType::Struct: return map.size();
 	case ValueType::Arr: return arr.size();
 	case ValueType::TokenID: return 0;
 	case ValueType::KeywordID: return 0;
 	case ValueType::Node: return 0;
+	case ValueType::Reference: return valueRef->count();
 	}
 	return 0;
+}
+
+void Value::clear()
+{
+	type = ValueType::Undefined;
+	valueString.clear();
+	arr.clear();
+	map.clear();
 }
 
 std::ostream & operator << ( std::ostream &out, const Value &value )
@@ -85,6 +115,9 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 	case ValueType::NumberI32:			return out << value.valueI32;
 	case ValueType::NumberI64:			return out << value.valueI64;
 	case ValueType::StringLiteral:		return out << value.valueString;
+
+	case ValueType::Struct:
+		return out << "NYI ValueType::Struct std::ostream & operator << ( std::ostream &out, const Value &value )";
 
 	case ValueType::Arr:
 		out << "[ ";
@@ -99,6 +132,7 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 	case ValueType::TokenID:			return out << value.valueString << " (id:" << static_cast<i32>( value.tokenID ) << ")";
 	case ValueType::KeywordID:			return out << value.valueString << " (id:" << static_cast<i32>( value.keywordID ) << ")";
 	case ValueType::Node:				return out << "Node[" << value.valueNode << "]";
+	case ValueType::Reference:			return out << "Reference[" << *value.valueRef << "]";
 	}
 
 	return out << "Unhandled value ValueType( " << static_cast<i32>( value.type ) << " )";
@@ -112,10 +146,12 @@ std::ostream & operator << ( std::ostream &out, const ValueType &valueType )
 	case ValueType::NumberI32:			return out << "NumberI32";
 	case ValueType::NumberI64:			return out << "NumberI64";
 	case ValueType::StringLiteral:		return out << "StringLiteral";
+	case ValueType::Struct:				return out << "Struct";
 	case ValueType::Arr:				return out << "Array";
 	case ValueType::TokenID:			return out << "TokenID";
 	case ValueType::KeywordID:			return out << "KeywordID";
 	case ValueType::Node:				return out << "Node";
+	case ValueType::Reference:			return out << "Reference";
 	}
 
 	return out << "Unhandled value ValueType( '" << static_cast<i32>( valueType ) << "' )";

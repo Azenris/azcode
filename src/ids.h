@@ -66,13 +66,16 @@ enum class KeywordID
 	Count,
 };
 
-enum class NodeType
+enum class NodeID
 {
 	Entry,
 	Block,
 	Identifier,
 	StringLiteral,
 	Number,
+	StructAssignment,
+	Accessor,
+	AccessorCall,
 	CreateArray,
 	ArrayAccess,
 	Count,
@@ -96,8 +99,10 @@ enum class ValueType
 	NumberI32,
 	NumberI64,
 	StringLiteral,
+	Struct,
 	Arr,
 	TokenID,
 	KeywordID,
 	Node,
+	Reference,
 };

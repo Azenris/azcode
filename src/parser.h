@@ -2,14 +2,119 @@
 #pragma once
 
 #include <vector>
+#include <iosfwd>
 
 #include "lexer.h"
 #include "result_code.h"
 #include "token.h"
 
+struct NodeType
+{
+	NodeID id;
+	const char *name;
+};
+
+constexpr NodeType NodeTypes[] =
+{
+	{
+		.id = NodeID::Entry,
+		.name = "Entry",
+	},
+	{
+		.id = NodeID::Block,
+		.name = "Block",
+	},
+	{
+		.id = NodeID::Identifier,
+		.name = "Identifier",
+	},
+	{
+		.id = NodeID::StringLiteral,
+		.name = "StringLiteral",
+	},
+	{
+		.id = NodeID::Number,
+		.name = "Number",
+	},
+	{
+		.id = NodeID::StructAssignment,
+		.name = "StructAssignment",
+	},
+	{
+		.id = NodeID::Accessor,
+		.name = "Accessor",
+	},
+	{
+		.id = NodeID::AccessorCall,
+		.name = "AccessorCall",
+	},
+	{
+		.id = NodeID::CreateArray,
+		.name = "CreateArray",
+	},
+	{
+		.id = NodeID::ArrayAccess,
+		.name = "ArrayAccess",
+	},
+	{
+		.id = NodeID::Count,
+		.name = "Count",
+	},
+	{
+		.id = NodeID::Assignment,
+		.name = "Assignment",
+	},
+	{
+		.id = NodeID::AssignmentOp,
+		.name = "AssignmentOp",
+	},
+	{
+		.id = NodeID::Operation,
+		.name = "Operation",
+	},
+	{
+		.id = NodeID::Equal,
+		.name = "Equal",
+	},
+	{
+		.id = NodeID::NotEqual,
+		.name = "NotEqual",
+	},
+	{
+		.id = NodeID::DeclFunc,
+		.name = "DeclFunc",
+	},
+	{
+		.id = NodeID::FunctionArgs,
+		.name = "FunctionArgs",
+	},
+	{
+		.id = NodeID::FunctionCall,
+		.name = "FunctionCall",
+	},
+	{
+		.id = NodeID::If,
+		.name = "If",
+	},
+	{
+		.id = NodeID::Return,
+		.name = "Return",
+	},
+	{
+		.id = NodeID::Print,
+		.name = "Print",
+	},
+	{
+		.id = NodeID::Println,
+		.name = "Println",
+	},
+};
+
+std::ostream & operator << ( std::ostream &out, const NodeID &nodeID );
+
 struct Node
 {
-	NodeType type;
+	NodeID type;
 	Token *token;
 	Node *left;
 	Node *right;
