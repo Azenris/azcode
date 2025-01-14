@@ -257,14 +257,38 @@ static Node *parser_parse_keyword( Parser *parser )
 					node->right = parser_parse_keyword( parser );
 				}
 				else
+
+	case KeywordID::Print:
+		{
+			Node *node = new_node( parser, NodeType::Print, token );
+			if ( parser->token->id != TokenID::NewLine )
+			{
+				node->left = parser_parse( parser );
+				while ( parser->token->id == TokenID::Comma )
 				{
-					// else
-					node->right = new_node( parser, NodeType::Block, nullptr );
-					parser_parse_codeblock( parser, node->right );
+					parser_consume( parser, TokenID::Comma );
+					node->children.push_back( parser_parse( parser ) );
 				}
+				return node;
 			}
-			return node;
 		}
+		break;
+
+	case KeywordID::Println:
+		{
+			Node *node = new_node( parser, NodeType::Println, token );
+			if ( parser->token->id != TokenID::NewLine )
+			{
+				node->left = parser_parse( parser );
+				while ( parser->token->id == TokenID::Comma )
+				{
+					parser_consume( parser, TokenID::Comma );
+					node->children.push_back( parser_parse( parser ) );
+				}
+				return node;
+			}
+		}
+		break;
 	}
 
 	std::cerr << "[Parser] Unexpected keyword token( " << *parser->token << " )." << std::endl;

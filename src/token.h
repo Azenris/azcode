@@ -12,6 +12,8 @@ enum class KeywordID
 	True,
 	If,
 	Else,
+	Print,
+	Println,
 };
 
 struct KeywordType
@@ -47,6 +49,14 @@ constexpr KeywordType Keywords[] =
 	{
 		.id = KeywordID::Else,
 		.name = "Else",
+	},
+	{
+		.id = KeywordID::Print,
+		.name = "Print",
+	},
+	{
+		.id = KeywordID::Println,
+		.name = "Println",
 	},
 };
 

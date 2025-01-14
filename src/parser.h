@@ -24,6 +24,8 @@ enum class NodeType
 	FunctionCall,
 	If,
 	Return,
+	Print,
+	Println,
 };
 
 struct Node

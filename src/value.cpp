@@ -271,6 +271,34 @@ Value & operator %= ( Value &lhs, const Value &rhs )
 	return lhs;
 }
 
+ToIntResult to_int( i32 *value, char const *str, char **endOut, i32 base )
+{
+	i64 v;
+	ToIntResult result = to_int( &v, str, endOut, base );
+	if ( result != ToIntResult::Success )
+		return result;
+	if ( v > INT32_MAX )
+		return ToIntResult::Overflow;
+	if ( v < INT32_MIN )
+		return ToIntResult::Underflow;
+	*value = static_cast<i32>( v );
+	return ToIntResult::Success;
+}
+
+ToIntResult to_int( u32 *value, char const *str, char **endOut, i32 base )
+{
+	u64 v;
+	ToIntResult result = to_int( &v, str, endOut, base );
+	if ( result != ToIntResult::Success )
+		return result;
+	if ( v > UINT32_MAX )
+		return ToIntResult::Overflow;
+	if ( v < 0 )
+		return ToIntResult::Underflow;
+	*value = static_cast<u32>( v );
+	return ToIntResult::Success;
+}
+
 ToIntResult to_int( i64 *value, char const *str, char **endOut, i32 base )
 {
 	char *end;

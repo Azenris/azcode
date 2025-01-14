@@ -18,7 +18,7 @@ set name=azcode
 set outputDir=final
 set buildDir=build
 set linker=
-set flags=-std:c++20 -Zc:preprocessor -Zc:strictStrings -GR-
+set flags=-std:c++latest -Zc:preprocessor -Zc:strictStrings -GR-
 set warnings=-WX -W4 -wd4189 -wd4201 -wd4324 -wd4505
 set includes=-Isrc/
 set defines=-D_CRT_SECURE_NO_WARNINGS -D_HAS_EXCEPTIONS=0

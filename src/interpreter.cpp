@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <print>
 
 #include "interpreter.h"
 
@@ -18,6 +19,51 @@ static Value process_codeblock( Interpreter *interpreter, Node *node )
 	}
 	interpreter->data.pop_back();
 	return value;
+}
+
+static void print_string( Interpreter *interpreter, Node *node )
+{
+	Value value = interpreter->run( node->left );
+
+	if ( value.type == ValueType::StringLiteral && !value.valueString.empty() )
+	{
+		std::vector<Value> args;
+		args.reserve( node->children.size() );
+		Node *arg = node->right;
+		for ( auto argNode : node->children )
+			args.push_back( interpreter->run( argNode ) );
+		const char *fmt = value.valueString.c_str();
+		const char *start = fmt;
+		char *end;
+		while ( *fmt != '\0' )
+		{
+			if ( *fmt == '%' && *( fmt + 1 ) != '%' )
+			{
+				fmt += 1;
+
+				i32 num;
+				if ( to_int( &num, fmt, &end ) == ToIntResult::Success && num >= 0 && num < static_cast<i32>( args.size() ) )
+				{
+					fmt = end;
+					std::cout << std::string_view( start, fmt - ( start + 2 ) ) << args[ num ];
+					start = fmt;
+				}
+				else
+				{
+					std::cerr << "[Interpreter] Println format token id unexpected. (Line: " << node->token->line << ")" << std::endl;
+					exit( RESULT_CODE_PRINT_FORMAT_TOKEN_ID_UNEXPECTED );
+				}
+			}
+
+			fmt += 1;
+		}
+		std::cout << std::string_view( start, fmt - start );
+	}
+	else
+	{
+		std::cerr << "[Interpreter] Println format expected as a string. (Line: " << node->token->line << ")" << std::endl;
+		exit( RESULT_CODE_PRINT_FORMAT_UNEXPECTED );
+	}
 }
 
 Value Interpreter::run( Node *node )
@@ -156,9 +202,37 @@ Value Interpreter::run( Node *node )
 				return run( node->right );
 			}
 		}
+		break;
 
 	case NodeType::Return:
 		return run( node->left );
+
+	case NodeType::Print:
+		{
+			if ( node->children.empty() )
+			{
+				std::cout << run( node->left );
+			}
+			else
+			{
+				print_string( this, node );
+			}
+		}
+		break;
+
+	case NodeType::Println:
+		{
+			if ( node->children.empty() )
+			{
+				std::cout << run( node->left ) << std::endl;
+			}
+			else
+			{
+				print_string( this, node );
+				std::cout << std::endl;
+			}
+		}
+		break;
 	}
 
 	return Value();

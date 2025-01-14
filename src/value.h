@@ -123,5 +123,7 @@ enum ToIntResult
 	Underflow,
 };
 
+ToIntResult to_int( i32 *value, char const *str, char **endOut = nullptr, i32 base = 0 );
+ToIntResult to_int( u32 *value, char const *str, char **endOut = nullptr, i32 base = 0 );
 ToIntResult to_int( i64 *value, char const *str, char **endOut = nullptr, i32 base = 0 );
 ToIntResult to_int( u64 *value, char const *str, char **endOut = nullptr, i32 base = 0 );
