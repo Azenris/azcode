@@ -98,7 +98,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 			const KeywordType *kw = get_keyword( lexer->str );
 			if ( kw )
-				return { .id = TokenID::Keyword, .value = { static_cast<i32>( kw->id ), lexer->str.c_str() }, .line = lexer->line };
+				return { .id = TokenID::Keyword, .value = { kw->id, lexer->str.c_str() }, .line = lexer->line };
 
 			return { .id = TokenID::Identifier, .value = lexer->str, .line = lexer->line };
 		}

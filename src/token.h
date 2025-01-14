@@ -5,16 +5,7 @@
 #include <vector>
 #include <iosfwd>
 
-enum class KeywordID
-{
-	Return,
-	False,
-	True,
-	If,
-	Else,
-	Print,
-	Println,
-};
+#include "ids.h"
 
 struct KeywordType
 {
@@ -58,59 +49,10 @@ constexpr KeywordType Keywords[] =
 		.id = KeywordID::Println,
 		.name = "Println",
 	},
-};
-
-// TODO:
-// BrokenBar
-// Backtick
-
-enum class TokenID
-{
-	Keyword,
-	Identifier,
-	StringLiteral,
-	Number,
-	Minus,
-	Plus,
-	Divide,
-	Asterisk,
-	Tilde,
-	Amp,
-	Pipe,
-	Hat,
-	Percent,
-	Exclamation,
-	MinusAssign,
-	PlusAssign,
-	DivideAssign,
-	AsteriskAssign,
-	TildeAssign,
-	AmpAssign,
-	PipeAssign,
-	HatAssign,
-	PercentAssign,
-	ExclamationAssign,
-	DoubleAmp,
-	DoublePipe,
-	Assign,
-	DoubleAssign,
-	GreaterThan,
-	GreaterOrEqual,
-	LesserThan,
-	LesserOrEqual,
-	ParenOpen,
-	ParenClose,
-	BraceOpen,
-	BraceClose,
-	SquareOpen,
-	SquareClose,
-	Period,
-	Comma,
-	Colon,
-	ColonAssign,
-	SemiColon,
-	NewLine,
-	EndOfFile,
+	{
+		.id = KeywordID::Count,
+		.name = "Count",
+	},
 };
 
 struct TokenType

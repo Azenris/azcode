@@ -115,6 +115,9 @@ Value Interpreter::run( Node *node )
 	case NodeType::ArrayAccess:
 		return run( node->left )[ static_cast<i64>( run( node->right ) ) ];
 
+	case NodeType::Count:
+		return run( node->left ).count();
+
 	case NodeType::Assignment:
 		return get_or_create_value( node->left ) = run( node->right );
 

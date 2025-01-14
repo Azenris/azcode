@@ -5,18 +5,9 @@
 #include <string>
 #include <iosfwd>
 
-struct Node;
+#include "ids.h"
 
-enum class ValueType
-{
-	Undefined,
-	NumberI32,
-	NumberI64,
-	StringLiteral,
-	Arr,
-	KeywordID,
-	Node,
-};
+struct Node;
 
 constexpr i32 TypeShift = 16;
 
@@ -28,6 +19,8 @@ struct Value
 
 	union
 	{
+		TokenID tokenID;
+		KeywordID keywordID;
 		i32 valueI32;
 		i64 valueI64;
 		Node *valueNode;
@@ -76,9 +69,16 @@ struct Value
 	{
 	}
 
-	Value( i32 val, const char *str )
+	Value( TokenID tokenID, const char *str )
+		: type( ValueType::TokenID )
+		, tokenID( tokenID )
+		, valueString( str )
+	{
+	}
+
+	Value( KeywordID keywordID, const char *str )
 		: type( ValueType::KeywordID )
-		, valueI32( val )
+		, keywordID( keywordID )
 		, valueString( str )
 	{
 	}
@@ -92,6 +92,7 @@ struct Value
 	operator bool();
 	explicit operator i64();
 	Value &operator [] ( i64 index );
+	i64 count() const;
 };
 
 std::ostream & operator << ( std::ostream &out, const Value &value );

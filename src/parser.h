@@ -7,29 +7,6 @@
 #include "result_code.h"
 #include "token.h"
 
-enum class NodeType
-{
-	Entry,
-	Block,
-	Identifier,
-	StringLiteral,
-	Number,
-	CreateArray,
-	ArrayAccess,
-	Assignment,
-	AssignmentOp,
-	Operation,
-	Equal,
-	NotEqual,
-	DeclFunc,
-	FunctionArgs,
-	FunctionCall,
-	If,
-	Return,
-	Print,
-	Println,
-};
-
 struct Node
 {
 	NodeType type;

@@ -12,6 +12,7 @@ Value::operator bool()
 	case ValueType::NumberI64: return valueI64 != 0;
 	case ValueType::StringLiteral: return !valueString.empty();
 	case ValueType::Arr: return !arr.empty();
+	case ValueType::TokenID: return true;
 	case ValueType::KeywordID: return true;
 	case ValueType::Node: return valueNode;
 	}
@@ -60,6 +61,22 @@ Value &Value::operator [] ( i64 index )
 	return arr[ index ];
 }
 
+i64 Value::count() const
+{
+	switch ( type )
+	{
+	case ValueType::Undefined: return 0;
+	case ValueType::NumberI32: return 0;
+	case ValueType::NumberI64: return 0;
+	case ValueType::StringLiteral: return valueString.size();
+	case ValueType::Arr: return arr.size();
+	case ValueType::TokenID: return 0;
+	case ValueType::KeywordID: return 0;
+	case ValueType::Node: return 0;
+	}
+	return 0;
+}
+
 std::ostream & operator << ( std::ostream &out, const Value &value )
 {
 	switch ( value.type )
@@ -79,7 +96,8 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 		}
 		return out << " ]{" << value.arr.size() << "}";
 
-	case ValueType::KeywordID:			return out << value.valueString << " (id:" << value.valueI32 << ")";
+	case ValueType::TokenID:			return out << value.valueString << " (id:" << static_cast<i32>( value.tokenID ) << ")";
+	case ValueType::KeywordID:			return out << value.valueString << " (id:" << static_cast<i32>( value.keywordID ) << ")";
 	case ValueType::Node:				return out << "Node[" << value.valueNode << "]";
 	}
 
@@ -95,6 +113,7 @@ std::ostream & operator << ( std::ostream &out, const ValueType &valueType )
 	case ValueType::NumberI64:			return out << "NumberI64";
 	case ValueType::StringLiteral:		return out << "StringLiteral";
 	case ValueType::Arr:				return out << "Array";
+	case ValueType::TokenID:			return out << "TokenID";
 	case ValueType::KeywordID:			return out << "KeywordID";
 	case ValueType::Node:				return out << "Node";
 	}

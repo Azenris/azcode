@@ -39,7 +39,7 @@ static Token *parser_ignore( Parser *parser, TokenID tokenID )
 
 static void add_return_if_needed( Parser *parser, Node *node )
 {
-	if ( node->children.empty() || node->children.back()->token->id != TokenID::Keyword || node->children.back()->value.valueI32 != static_cast<i32>( KeywordID::Return ) )
+	if ( node->children.empty() || node->children.back()->token->id != TokenID::Keyword || node->children.back()->value.keywordID != KeywordID::Return )
 	{
 		// Implicit return will return the value 0
 		Node *returnNode = new_node( parser, NodeType::Number, nullptr );
@@ -359,6 +359,23 @@ static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nul
 			parser_ignore( parser, TokenID::NewLine );
 			parser_consume( parser, TokenID::SquareClose );
 			node = accessor;
+		}
+		break;
+
+	case TokenID::Period:
+		{
+			parser_consume( parser, TokenID::Period );
+
+			if ( parser->token->id == TokenID::Keyword && parser->token->value.keywordID == KeywordID::Count )
+			{
+				token = parser_consume( parser, TokenID::Keyword );
+				Node *count = new_node( parser, NodeType::Count, token );
+				count->left = node;
+				return count;
+			}
+
+			std::cerr << "[Parser] Unexpected dot access token( " << *parser->token << " )." << std::endl;
+			exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 		}
 		break;
 
