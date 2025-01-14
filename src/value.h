@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <vector>
 #include <string>
 #include <iosfwd>
 
@@ -12,6 +13,7 @@ enum class ValueType
 	NumberI32,
 	NumberI64,
 	StringLiteral,
+	Arr,
 	KeywordID,
 	Node,
 };
@@ -32,10 +34,16 @@ struct Value
 	};
 
 	std::string valueString;
+	std::vector<Value> arr;
 
 	// -- --
 	Value()
 		: type( ValueType::Undefined )
+	{
+	}
+
+	Value( ValueType type )
+		: type( type )
 	{
 	}
 
@@ -81,19 +89,9 @@ struct Value
 	{
 	}
 
-	operator bool()
-	{
-		switch ( type )
-		{
-		case ValueType::Undefined: return false;
-		case ValueType::NumberI32: return valueI32 != 0;
-		case ValueType::NumberI64: return valueI64 != 0;
-		case ValueType::StringLiteral: return !valueString.empty();
-		case ValueType::KeywordID: return true;
-		case ValueType::Node: return valueNode;
-		}
-		return false;
-	}
+	operator bool();
+	explicit operator i64();
+	Value &operator [] ( i64 index );
 };
 
 std::ostream & operator << ( std::ostream &out, const Value &value );

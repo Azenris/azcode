@@ -14,6 +14,8 @@ enum class NodeType
 	Identifier,
 	StringLiteral,
 	Number,
+	CreateArray,
+	ArrayAccess,
 	Assignment,
 	AssignmentOp,
 	Operation,

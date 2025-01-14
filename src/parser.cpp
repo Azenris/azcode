@@ -349,6 +349,19 @@ static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nul
 		}
 		break;
 
+	case TokenID::SquareOpen:
+		{
+			parser_consume( parser, TokenID::SquareOpen );
+			parser_ignore( parser, TokenID::NewLine );
+			Node *accessor = new_node( parser, NodeType::ArrayAccess, parser->token );
+			accessor->left = node;
+			accessor->right = parser_parse( parser );
+			parser_ignore( parser, TokenID::NewLine );
+			parser_consume( parser, TokenID::SquareClose );
+			node = accessor;
+		}
+		break;
+
 	case TokenID::MinusAssign:
 	case TokenID::PlusAssign:
 	case TokenID::DivideAssign:
@@ -620,6 +633,38 @@ static Node *parser_parse_braceclose( Parser *parser )
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
+static Node *parser_parse_squareopen( Parser *parser )
+{
+	Token *token = parser_consume( parser, TokenID::SquareOpen );
+	Node *node = new_node( parser, NodeType::CreateArray, token );
+
+	parser_ignore( parser, TokenID::NewLine );
+
+	if ( parser->token->id != TokenID::SquareClose )
+	{
+		node->children.push_back( parser_parse( parser ) );
+		parser_ignore( parser, TokenID::NewLine );
+
+		while ( parser->token->id == TokenID::Comma )
+		{
+			parser_consume( parser, TokenID::Comma );
+			parser_ignore( parser, TokenID::NewLine );
+			node->children.push_back( parser_parse( parser ) );
+			parser_ignore( parser, TokenID::NewLine );
+		}
+	}
+
+	parser_consume( parser, TokenID::SquareClose );
+
+	return node;
+}
+
+static Node *parser_parse_squareclose( Parser *parser )
+{
+	std::cerr << "[Parser] Unexpected squareclose token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
 static Node *parser_parse_period( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::Period );
@@ -710,6 +755,8 @@ static Node *parser_parse( Parser *parser )
 	case TokenID::ParenClose: return parser_parse_parenclose( parser );
 	case TokenID::BraceOpen: return parser_parse_braceopen( parser );
 	case TokenID::BraceClose: return parser_parse_braceclose( parser );
+	case TokenID::SquareOpen: return parser_parse_squareopen( parser );
+	case TokenID::SquareClose: return parser_parse_squareclose( parser );
 	case TokenID::Period: return parser_parse_period( parser );
 	case TokenID::Comma: return parser_parse_comma( parser );
 	case TokenID::Colon: return parser_parse_colon( parser );

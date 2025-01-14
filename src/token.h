@@ -102,6 +102,8 @@ enum class TokenID
 	ParenClose,
 	BraceOpen,
 	BraceClose,
+	SquareOpen,
+	SquareClose,
 	Period,
 	Comma,
 	Colon,
@@ -301,6 +303,16 @@ constexpr TokenType TokenTypes[] =
 		.id = TokenID::BraceClose,
 		.name = "BraceClose",
 		.symbol = "}",
+	},
+	{
+		.id = TokenID::SquareOpen,
+		.name = "SquareOpen",
+		.symbol = "[",
+	},
+	{
+		.id = TokenID::SquareClose,
+		.name = "SquareClose",
+		.symbol = "]",
 	},
 	{
 		.id = TokenID::Period,

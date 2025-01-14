@@ -3,6 +3,63 @@
 
 #include "value.h"
 
+Value::operator bool()
+{
+	switch ( type )
+	{
+	case ValueType::Undefined: return false;
+	case ValueType::NumberI32: return valueI32 != 0;
+	case ValueType::NumberI64: return valueI64 != 0;
+	case ValueType::StringLiteral: return !valueString.empty();
+	case ValueType::Arr: return !arr.empty();
+	case ValueType::KeywordID: return true;
+	case ValueType::Node: return valueNode;
+	}
+	return false;
+}
+
+Value::operator i64()
+{
+	switch ( type )
+	{
+	case ValueType::Undefined: return 0;
+	case ValueType::NumberI32: return valueI32;
+	case ValueType::NumberI64: return valueI64;
+
+	case ValueType::StringLiteral:
+		{
+			if ( valueString.empty() )
+				return 0;
+			i64 idx;
+			if ( to_int( &idx, valueString.c_str() ) == ToIntResult::Success )
+			{
+				return idx;
+			}
+		}
+		break;
+	}
+
+	std::cerr << "Cannot convert from " << *this << " to i64." << std::endl;
+	exit( RESULT_CODE_VALUE_CANNOT_CONVERT );
+}
+
+Value &Value::operator [] ( i64 index )
+{
+	if ( type != ValueType::Arr )
+	{
+		std::cerr << "Attempting to access subscript of value that isn't an array. ( " << *this << " )." << std::endl;
+		exit( RESULT_CODE_VALUE_SUBSCRIPT_OF_NON_ARRAY );
+	}
+
+	if ( index < 0 || index >= static_cast<i64>( arr.size() ) )
+	{
+		std::cerr << "Attempting to access subscript of value out of bounds[ " << index << " ]. ( " << *this << " )." << std::endl;
+		exit( RESULT_CODE_VALUE_SUBSCRIPT_OUT_OF_RANGE );
+	}
+
+	return arr[ index ];
+}
+
 std::ostream & operator << ( std::ostream &out, const Value &value )
 {
 	switch ( value.type )
@@ -11,7 +68,19 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 	case ValueType::NumberI32:			return out << value.valueI32;
 	case ValueType::NumberI64:			return out << value.valueI64;
 	case ValueType::StringLiteral:		return out << value.valueString;
+
+	case ValueType::Arr:
+		out << "[ ";
+		if ( !value.arr.empty() )
+		{
+			out << value.arr[ 0 ];
+			for ( u64 i = 1, count = value.arr.size(); i < count; ++i )
+				out << ", " << value.arr[ i ];
+		}
+		return out << " ]{" << value.arr.size() << "}";
+
 	case ValueType::KeywordID:			return out << value.valueString << " (id:" << value.valueI32 << ")";
+	case ValueType::Node:				return out << "Node[" << value.valueNode << "]";
 	}
 
 	return out << "Unhandled value ValueType( " << static_cast<i32>( value.type ) << " )";
@@ -25,7 +94,9 @@ std::ostream & operator << ( std::ostream &out, const ValueType &valueType )
 	case ValueType::NumberI32:			return out << "NumberI32";
 	case ValueType::NumberI64:			return out << "NumberI64";
 	case ValueType::StringLiteral:		return out << "StringLiteral";
+	case ValueType::Arr:				return out << "Array";
 	case ValueType::KeywordID:			return out << "KeywordID";
+	case ValueType::Node:				return out << "Node";
 	}
 
 	return out << "Unhandled value ValueType( '" << static_cast<i32>( valueType ) << "' )";
@@ -52,7 +123,7 @@ Value operator - ( const Value &lhs, const Value &rhs )
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
-	return nullptr;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
 Value & operator -= ( Value &lhs, const Value &rhs )
@@ -82,7 +153,7 @@ Value operator + ( const Value &lhs, const Value &rhs )
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
-	return nullptr;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
 Value & operator += ( Value &lhs, const Value &rhs )
@@ -112,7 +183,7 @@ Value operator / ( const Value &lhs, const Value &rhs )
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
-	return nullptr;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
 Value & operator /= ( Value &lhs, const Value &rhs )
@@ -142,7 +213,7 @@ Value operator * ( const Value &lhs, const Value &rhs )
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
-	return nullptr;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
 Value & operator *= ( Value &lhs, const Value &rhs )
@@ -172,7 +243,7 @@ Value operator & ( const Value &lhs, const Value &rhs )
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
-	return nullptr;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
 Value & operator &= ( Value &lhs, const Value &rhs )
@@ -202,7 +273,7 @@ Value operator | ( const Value &lhs, const Value &rhs )
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
-	return nullptr;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
 Value & operator |= ( Value &lhs, const Value &rhs )
@@ -232,7 +303,7 @@ Value operator ^ ( const Value &lhs, const Value &rhs )
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
-	return nullptr;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
 Value & operator ^= ( Value &lhs, const Value &rhs )
@@ -262,7 +333,7 @@ Value operator % ( const Value &lhs, const Value &rhs )
 	}
 
 	std::cerr << "Unhandled value types( " << lhs.type << ", " << rhs.type << " )" << std::endl;
-	return nullptr;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
 Value & operator %= ( Value &lhs, const Value &rhs )

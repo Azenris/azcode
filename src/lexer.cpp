@@ -263,6 +263,14 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			lexer->txt += 1;
 			return { .id = TokenID::BraceClose, .line = lexer->line };
 
+		case '[':
+			lexer->txt += 1;
+			return { .id = TokenID::SquareOpen, .line = lexer->line };
+
+		case ']':
+			lexer->txt += 1;
+			return { .id = TokenID::SquareClose, .line = lexer->line };
+
 		case '.':
 			lexer->txt += 1;
 			return { .id = TokenID::Period, .line = lexer->line };

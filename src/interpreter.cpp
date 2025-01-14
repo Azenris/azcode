@@ -104,6 +104,17 @@ Value Interpreter::run( Node *node )
 	case NodeType::Number:
 		return node->value;
 
+	case NodeType::CreateArray:
+		{
+			Value arr( ValueType::Arr );
+			for ( auto child : node->children )
+				arr.arr.push_back( run( child ) );
+			return arr;
+		}
+
+	case NodeType::ArrayAccess:
+		return run( node->left )[ static_cast<i64>( run( node->right ) ) ];
+
 	case NodeType::Assignment:
 		return get_or_create_value( node->left ) = run( node->right );
 
