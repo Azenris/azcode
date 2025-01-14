@@ -295,40 +295,42 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 		case '"':
 			{
-				const char *start = ++lexer->txt;
-				u64 len = 0;
-				char p;
-
-				// TODO : do in a loop and concat any strings place next to each other
-
+				// TODO : do in a loop and concat any strings placed next to each other
 				lexer->str.clear();
 
-				do
+				if ( *lexer->txt != '"' )
 				{
-					p = c;
-					len += 1;
-					c = *(++lexer->txt);
-					if ( c == '\0' )
+					const char *start = ++lexer->txt;
+					u64 len = 0;
+					char p;
+
+					while ( c != '"' );
 					{
-						std::cerr << "[Lexer] String literal not closed." << std::endl;
-						exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
-					}
-					else if ( c == '\n' )
-					{
-						lexer->line += 1;
-					}
-					else if ( p == '\\' && c == '"' )
-					{
-						lexer->str.append( start, len - 1 );
-						lexer->str.append( "\"" );
-						start = ++lexer->txt;
-						len = 0;
-						c = *start;
+						p = c;
+						len += 1;
+						c = *(++lexer->txt);
+						if ( c == '\0' )
+						{
+							std::cerr << "[Lexer] String literal not closed." << std::endl;
+							exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
+						}
+						else if ( c == '\n' )
+						{
+							lexer->line += 1;
+						}
+						else if ( p == '\\' && c == '"' )
+						{
+							lexer->str.append( start, len - 1 );
+							lexer->str.append( "\"" );
+							start = ++lexer->txt;
+							len = 0;
+							c = *start;
+						}
+
 					}
 
-				} while ( c != '"' );
-
-				lexer->str.append( start, len );
+					lexer->str.append( start, len );
+				}
 
 				lexer->txt += 1;
 
