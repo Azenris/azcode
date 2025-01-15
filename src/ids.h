@@ -80,6 +80,7 @@ enum class NodeID
 	Count,
 	Assignment,
 	Operation,
+	AssignmentOp,
 	Equal,
 	NotEqual,
 	DeclFunc,

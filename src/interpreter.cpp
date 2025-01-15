@@ -191,6 +191,59 @@ Value Interpreter::run( Node *node )
 		}
 		break;
 
+	case NodeID::AssignmentOp:
+		switch ( node->token->id )
+		{
+		case TokenID::MinusAssign:
+			{
+				Value value = run( node->left );
+				return value -= run( node->right );
+			}
+
+		case TokenID::PlusAssign:
+			{
+				Value value = run( node->left );
+				return value += run( node->right );
+			}
+
+		case TokenID::DivideAssign:
+			{
+				Value value = run( node->left );
+				return value /= run( node->right );
+			}
+
+		case TokenID::AsteriskAssign:
+			{
+				Value value = run( node->left );
+				return value *= run( node->right );
+			}
+
+		case TokenID::AmpAssign:
+			{
+				Value value = run( node->left );
+				return value &= run( node->right );
+			}
+
+		case TokenID::PipeAssign:
+			{
+				Value value = run( node->left );
+				return value |= run( node->right );
+			}
+
+		case TokenID::HatAssign:
+			{
+				Value value = run( node->left );
+				return value ^= run( node->right );
+			}
+
+		case TokenID::PercentAssign:
+			{
+				Value value = run( node->left );
+				return value %= run( node->right );
+			}
+		}
+		break;
+
 	case NodeID::Equal:
 		return run( node->left ) == run( node->right );
 

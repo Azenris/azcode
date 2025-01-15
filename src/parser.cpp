@@ -496,24 +496,22 @@ static Node *parser_parse_identifier_use( Parser *parser, Node *node )
 		}
 		break;
 
-	// TODO :  no longer have AssignmentOp
-	// isntead just generate the 2 nodes for   x = x + 1
-	// case TokenID::MinusAssign:
-	// case TokenID::PlusAssign:
-	// case TokenID::DivideAssign:
-	// case TokenID::AsteriskAssign:
-	// case TokenID::AmpAssign:
-	// case TokenID::PipeAssign:
-	// case TokenID::HatAssign:
-	// case TokenID::PercentAssign:
-		// {
-			// token = parser_consume( parser, parser->token->id );
-			// Node *op = new_node( parser, NodeID::AssignmentOp, token );
-			// op->left = node;
-			// op->right = parser_parse( parser );
-			// node = op;
-		// }
-		// break;
+	case TokenID::MinusAssign:
+	case TokenID::PlusAssign:
+	case TokenID::DivideAssign:
+	case TokenID::AsteriskAssign:
+	case TokenID::AmpAssign:
+	case TokenID::PipeAssign:
+	case TokenID::HatAssign:
+	case TokenID::PercentAssign:
+		{
+			Token *token = parser_consume( parser, parser->token->id );
+			Node *op = new_node( parser, NodeID::AssignmentOp, token );
+			op->left = node;
+			op->right = parser_parse( parser );
+			node = op;
+		}
+		break;
 	}
 
 	node = parser_parse_operator( parser, node );

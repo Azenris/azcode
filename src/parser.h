@@ -65,6 +65,10 @@ constexpr NodeType NodeTypes[] =
 		.name = "Operation",
 	},
 	{
+		.id = NodeID::AssignmentOp,
+		.name = "AssignmentOp",
+	},
+	{
 		.id = NodeID::Equal,
 		.name = "Equal",
 	},
