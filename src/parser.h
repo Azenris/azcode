@@ -29,6 +29,10 @@ constexpr NodeType NodeTypes[] =
 		.name = "Identifier",
 	},
 	{
+		.id = NodeID::CreateIdentifier,
+		.name = "CreateIdentifier",
+	},
+	{
 		.id = NodeID::StringLiteral,
 		.name = "StringLiteral",
 	},
@@ -39,14 +43,6 @@ constexpr NodeType NodeTypes[] =
 	{
 		.id = NodeID::StructAssignment,
 		.name = "StructAssignment",
-	},
-	{
-		.id = NodeID::Accessor,
-		.name = "Accessor",
-	},
-	{
-		.id = NodeID::AccessorCall,
-		.name = "AccessorCall",
 	},
 	{
 		.id = NodeID::CreateArray,
@@ -63,10 +59,6 @@ constexpr NodeType NodeTypes[] =
 	{
 		.id = NodeID::Assignment,
 		.name = "Assignment",
-	},
-	{
-		.id = NodeID::AssignmentOp,
-		.name = "AssignmentOp",
 	},
 	{
 		.id = NodeID::Operation,

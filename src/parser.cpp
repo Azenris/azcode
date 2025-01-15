@@ -402,19 +402,55 @@ static Node *parser_parse_identifier_assign( Parser *parser )
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
-static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nullptr )
+static Node *parse_parse_dot_access( Parser *parser, Node *node )
 {
-	Token *token = parser_consume( parser, TokenID::Identifier );
-	Node *node = new_node( parser, NodeID::Identifier, token );
+	Token *token;
 
-	if ( identiferNode )
-		*identiferNode = node;
+	while ( parser->token->id == TokenID::Period )
+	{
+		parser_consume( parser, TokenID::Period );
+		parser_ignore( parser, TokenID::NewLine );
+
+		if ( parser->token->id == TokenID::Keyword )
+		{
+			if ( parser->token->value.keywordID == KeywordID::Count )
+			{
+				token = parser_consume( parser, TokenID::Keyword );
+				Node *count = new_node( parser, NodeID::Count, token );
+				count->left = node;
+				return count;
+			}
+
+			std::cerr << "[Parser] Unexpected dot keyword token( " << *parser->token << " )." << std::endl;
+			exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+		}
+		else if ( parser->token->id == TokenID::Identifier )
+		{
+			token = parser_consume( parser, TokenID::Identifier );
+			node->children.push_back( new_node( parser, NodeID::Identifier, token ) );
+		}
+		else
+		{
+			std::cerr << "[Parser] Unexpected dot keyword token( " << *parser->token << " )." << std::endl;
+			exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+		}
+	}
+
+	return node;
+}
+
+static Node *parser_parse_identifier_use( Parser *parser, Node *node )
+{
+	Node *idNode = node;
+
+	node = parse_parse_dot_access( parser, node );
 
 	switch ( parser->token->id )
 	{
 	case TokenID::Assign:
 		{
-			token = parser_consume( parser, TokenID::Assign );
+			idNode->type = NodeID::CreateIdentifier;
+			Token *token = parser_consume( parser, TokenID::Assign );
 			parser_ignore( parser, TokenID::NewLine );
 			if ( parser->token->id == TokenID::BraceOpen )
 				return parser_parse_struct_decl( parser, node );
@@ -427,7 +463,8 @@ static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nul
 
 	case TokenID::ColonAssign:
 		{
-			token = parser_consume( parser, TokenID::ColonAssign );
+			idNode->type = NodeID::CreateIdentifier;
+			Token *token = parser_consume( parser, TokenID::ColonAssign );
 			Node *declFunc = new_node( parser, NodeID::DeclFunc, token );
 			declFunc->left = node;
 			declFunc->right = parser_parse_func_decl_args( parser );
@@ -439,10 +476,10 @@ static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nul
 
 	case TokenID::ParenOpen:
 		{
-			Node *func = new_node( parser, NodeID::FunctionCall, token );
+			Node *func = new_node( parser, NodeID::FunctionCall, parser->token );
 			func->left = node;
 			parser_parse_func_args( parser, func );
-			node = func;
+			return parser_parse_identifier_use( parser, func );
 		}
 		break;
 
@@ -455,66 +492,46 @@ static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nul
 			accessor->right = parser_parse( parser );
 			parser_ignore( parser, TokenID::NewLine );
 			parser_consume( parser, TokenID::SquareClose );
-			node = accessor;
+			return parser_parse_identifier_use( parser, accessor );
 		}
 		break;
 
-	case TokenID::Period:
-		{
-			parser_consume( parser, TokenID::Period );
-
-			if ( parser->token->id == TokenID::Keyword )
-			{
-				if ( parser->token->value.keywordID == KeywordID::Count )
-				{
-					token = parser_consume( parser, TokenID::Keyword );
-					Node *count = new_node( parser, NodeID::Count, token );
-					count->left = node;
-					return count;
-				}
-
-				std::cerr << "[Parser] Unexpected dot keyword token( " << *parser->token << " )." << std::endl;
-				exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-			}
-
-			token = parser_consume( parser, TokenID::Identifier );
-			parser_ignore( parser, TokenID::NewLine );
-
-			if ( parser->token->id == TokenID::ParenOpen )
-			{
-				Node *accessorCall = new_node( parser, NodeID::AccessorCall, token );
-				accessorCall->left = node;
-				parser_parse_func_args( parser, accessorCall );
-				return accessorCall;
-			}
-
-			Node *accessor = new_node( parser, NodeID::Accessor, token );
-			accessor->left = node;
-			return accessor;
-		}
-		break;
-
-	case TokenID::MinusAssign:
-	case TokenID::PlusAssign:
-	case TokenID::DivideAssign:
-	case TokenID::AsteriskAssign:
-	case TokenID::AmpAssign:
-	case TokenID::PipeAssign:
-	case TokenID::HatAssign:
-	case TokenID::PercentAssign:
-		{
-			token = parser_consume( parser, parser->token->id );
-			Node *op = new_node( parser, NodeID::AssignmentOp, token );
-			op->left = node;
-			op->right = parser_parse( parser );
-			node = op;
-		}
-		break;
+	// TODO :  no longer have AssignmentOp
+	// isntead just generate the 2 nodes for   x = x + 1
+	// case TokenID::MinusAssign:
+	// case TokenID::PlusAssign:
+	// case TokenID::DivideAssign:
+	// case TokenID::AsteriskAssign:
+	// case TokenID::AmpAssign:
+	// case TokenID::PipeAssign:
+	// case TokenID::HatAssign:
+	// case TokenID::PercentAssign:
+		// {
+			// token = parser_consume( parser, parser->token->id );
+			// Node *op = new_node( parser, NodeID::AssignmentOp, token );
+			// op->left = node;
+			// op->right = parser_parse( parser );
+			// node = op;
+		// }
+		// break;
 	}
 
 	node = parser_parse_operator( parser, node );
 
 	return node;
+}
+
+static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nullptr )
+{
+	Token *token = parser_consume( parser, TokenID::Identifier );
+	Node *node = new_node( parser, NodeID::Identifier, token );
+
+	if ( identiferNode )
+		*identiferNode = node;
+
+	parser_ignore( parser, TokenID::NewLine );
+
+	return parser_parse_identifier_use( parser, node );
 }
 
 static Node *parser_parse_stringliteral( Parser *parser )
