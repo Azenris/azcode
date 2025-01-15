@@ -1,0 +1,21 @@
+
+obj = {
+	this = {
+		that = 6
+	}
+}
+
+test = obj.this.that
+
+obj2 = {}
+obj2.cake = 7
+
+obj3 = {
+	f := ( arg1 ) {
+		return arg1 * 2
+	}
+}
+
+obj4 = { frame = { this = 4 } }
+
+return test + obj2.cake + obj3.f( 2 ) + obj4.frame.this

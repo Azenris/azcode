@@ -1,0 +1,16 @@
+
+println "Message"
+println "Message : %0", 77
+println "Message : %0 %0 %0", 6
+println "Message : %1-%0%%", 6, 9
+
+temp = 3
+temp2 = "Meow"
+
+println "temp is %0", temp
+print "-"
+print "-"
+print "-"
+print "-"
+println ""
+println temp2

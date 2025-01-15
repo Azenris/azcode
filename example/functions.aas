@@ -1,0 +1,23 @@
+
+func := () {
+	println "Test"
+}
+
+func()
+
+func2 := () { return 7 }
+test = func2()
+
+func3 := ( arg1, arg2 ) {
+	return arg1 + arg2
+}
+
+test2 = func3( 2, 3 )
+
+func4 := ( arg1 ) {
+	.this = 2
+	.that = 1
+	return arg1 + this + that
+}
+
+return test + test2 + func4( 1 )

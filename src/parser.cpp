@@ -905,6 +905,32 @@ static Node *parser_parse( Parser *parser )
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
+static Node *parser_parse_top( Parser *parser )
+{
+	switch ( parser->token->id )
+	{
+	case TokenID::Keyword: return parser_parse_keyword( parser );
+	case TokenID::Identifier: return parser_parse_identifier( parser );
+	case TokenID::Minus: return parser_parse_minus( parser );
+	case TokenID::Plus: return parser_parse_plus( parser );
+	case TokenID::Divide: return parser_parse_divide( parser );
+	case TokenID::Asterisk: return parser_parse_asterisk( parser );
+	case TokenID::Tilde: return parser_parse_tilde( parser );
+	case TokenID::Amp: return parser_parse_amp( parser );
+	case TokenID::Pipe: return parser_parse_pipe( parser );
+	case TokenID::Hat: return parser_parse_hat( parser );
+	case TokenID::Percent: return parser_parse_percent( parser );
+	case TokenID::Exclamation: return parser_parse_exclamation( parser );
+	case TokenID::BraceOpen: return parser_parse_braceopen( parser );
+	case TokenID::BraceClose: return parser_parse_braceclose( parser );
+	case TokenID::NewLine: return parser_parse_newline( parser );
+	case TokenID::EndOfFile: return parser_parse_endoffile( parser );
+	}
+
+	std::cerr << "[Parser] Unexpected parse token( " << *parser->token << " )." << std::endl;
+	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+}
+
 void Parser::run( std::vector<Token> tokensIn )
 {
 	tokens = std::move( tokensIn );
@@ -921,7 +947,7 @@ void Parser::run( std::vector<Token> tokensIn )
 	Node *node;
 	while ( token->id != TokenID::EndOfFile )
 	{
-		node = parser_parse( this );
+		node = parser_parse_top( this );
 		if ( node )
 			root->children.push_back( node );
 	}

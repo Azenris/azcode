@@ -1,0 +1,13 @@
+
+apples = 5
+oranges = 7
+total = apples + oranges
+
+somethingElse = 1
+
+total -= 4
+total += somethingElse
+
+somethingElse = total
+
+return ( somethingElse + 2 ) / 2 + 3 * 3 + 2
