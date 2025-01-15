@@ -98,7 +98,7 @@ Value Interpreter::run( Node *node )
 			{
 				value = run( child );
 				if ( child->type == NodeID::Return )
-					return value;
+					return value.get_as_i64( child );
 			}
 			return value;
 		}
@@ -166,7 +166,7 @@ Value Interpreter::run( Node *node )
 
 			if ( value.type == ValueType::Struct )
 			{
-				auto iter = value.map.find( static_cast<std::string>( node->token->value ) );
+				auto iter = value.map.find( node->token->value.get_as_string( node ) );
 				if ( iter != value.map.end() )
 					return iter->second;
 			}
@@ -369,14 +369,20 @@ Value &Interpreter::get_value( Node *node )
 	{
 		value->scope = static_cast<i32>( data.size() - 1 );
 
+		const char *from = node->value.valueString.c_str();
+
 		for ( auto &child : node->children )
 		{
-			value = &value->map[ child->value.valueString ];
-			if ( !value )
+			auto iter = value->map.find( child->value.valueString );
+			if ( iter == value->map.end() )
 			{
-				std::cerr << "[Interpreter] Variable unknown \"" << node->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
+				std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". (Line: " << child->token->line << ")" << std::endl;
 				exit( RESULT_CODE_VARIABLE_UNKNOWN );
 			}
+
+			value = &iter->second;
+
+			from = child->value.valueString.c_str();
 
 			value->scope = static_cast<i32>( data.size() - 1 );
 		}

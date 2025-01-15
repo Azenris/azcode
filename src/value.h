@@ -112,8 +112,8 @@ struct Value
 
 	Value & operator = ( const Value &rhs );
 	operator bool();
-	explicit operator i64();
-	explicit operator std::string();
+	i64 get_as_i64( Node *node );
+	std::string get_as_string( Node *node );
 	Value operator [] ( i64 index );
 	i64 count() const;
 	void clear();

@@ -45,7 +45,7 @@ Value::operator bool()
 	return false;
 }
 
-Value::operator i64()
+i64 Value::get_as_i64( Node *node )
 {
 	switch ( type )
 	{
@@ -69,11 +69,11 @@ Value::operator i64()
 		return static_cast<i64>( *valueRef );
 	}
 
-	std::cerr << "Cannot convert from " << *this << " to i64." << std::endl;
+	std::cerr << "Cannot convert from " << *this << " to i64. (Line: " << node->token->line << ")" << std::endl;
 	exit( RESULT_CODE_VALUE_CANNOT_CONVERT );
 }
 
-Value::operator std::string()
+std::string Value::get_as_string( Node *node )
 {
 	switch ( type )
 	{
@@ -81,10 +81,10 @@ Value::operator std::string()
 	case ValueType::NumberI32: return std::to_string( valueI32 );
 	case ValueType::NumberI64: return std::to_string( valueI64 );
 	case ValueType::StringLiteral: return valueString;
-	case ValueType::Reference: return static_cast<std::string>( *valueRef );
+	case ValueType::Reference: return valueRef->get_as_string( node );
 	}
 
-	std::cerr << "Cannot convert from " << *this << " to std::string." << std::endl;
+	std::cerr << "Cannot convert from " << *this << " to std::string. (Line: " << node->token->line << ")" << std::endl;
 	exit( RESULT_CODE_VALUE_CANNOT_CONVERT );
 }
 
@@ -158,7 +158,15 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 	case ValueType::StringLiteral:		return out << value.valueString;
 
 	case ValueType::Struct:
-		return out << "NYI ValueType::Struct std::ostream & operator << ( std::ostream &out, const Value &value )";
+		out << "{ ";
+		if ( !value.map.empty() )
+		{
+			auto iter = value.map.begin();
+			out << iter->first << ":" << iter->second;
+			for ( ++iter; iter != value.map.end(); ++iter )
+				out << ", " << iter->first << ":" << iter->second;
+		}
+		return out << " }";
 
 	case ValueType::Arr:
 		out << "[ ";
