@@ -392,8 +392,41 @@ Value Interpreter::run( Node *node )
 	return Value();
 }
 
+Value *Interpreter::chain_access( Node *node, Value *value )
+{
+	if ( value->type != ValueType::Undefined )
+	{
+		const char *from = node->value.valueString.c_str();
+		for ( auto &child : node->children )
+		{
+			auto subIter = value->map.find( child->value.valueString );
+			if ( subIter == value->map.end() )
+			{
+				std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". (Line: " << child->token->line << ")" << std::endl;
+				exit( RESULT_CODE_VARIABLE_UNKNOWN );
+			}
+			value = &subIter->second;
+			from = child->value.valueString.c_str();
+			value->scope = scope;
+		}
+		return value;
+	}
+
+	return nullptr;
+}
+
 Value &Interpreter::get_value( Node *node )
 {
+	if ( node->left )
+	{
+		Value value = run( node->left );
+		Value *chainedValue = chain_access( node, &value );
+		if ( chainedValue )
+			return *chainedValue;
+		std::cerr << "[Interpreter] Variable unknown \"" << node->left->value.valueString << "\" (Line: " << node->left->token->line << ")" << std::endl;
+		exit( RESULT_CODE_VARIABLE_UNKNOWN );
+	}
+
 	auto iter = data.find( node->value.valueString );
 	if ( iter != data.end() )
 	{
@@ -402,24 +435,9 @@ Value &Interpreter::get_value( Node *node )
 		{
 			if ( values[ scopeIdx ] )
 			{
-				Value *value = values[ scopeIdx ];
-				if ( value->type != ValueType::Undefined )
-				{
-					const char *from = node->value.valueString.c_str();
-					for ( auto &child : node->children )
-					{
-						auto subIter = value->map.find( child->value.valueString );
-						if ( subIter == value->map.end() )
-						{
-							std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". (Line: " << child->token->line << ")" << std::endl;
-							exit( RESULT_CODE_VARIABLE_UNKNOWN );
-						}
-						value = &subIter->second;
-						from = child->value.valueString.c_str();
-						value->scope = scope;
-					}
+				Value *value = chain_access( node, values[ scopeIdx ] );
+				if ( value )
 					return *value;
-				}
 			}
 		}
 	}

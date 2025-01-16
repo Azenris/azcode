@@ -15,6 +15,7 @@ struct Interpreter
 	int scope;
 
 	Value run( Node *node );
+	Value *chain_access( Node *node, Value *value );
 	Value &get_or_create_value( std::vector<Value*> &values, i32 valueScope, Node *node );
 	Value &get_value( Node *node );
 	Value &get_or_create_value( Node *node );

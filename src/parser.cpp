@@ -425,6 +425,7 @@ static Node *parser_parse_identifier_assign( Parser *parser )
 static Node *parse_parse_dot_access( Parser *parser, Node *node )
 {
 	Token *token;
+	Node *idNode = node;
 
 	while ( parser->token->id == TokenID::Period )
 	{
@@ -437,7 +438,7 @@ static Node *parse_parse_dot_access( Parser *parser, Node *node )
 			{
 				token = parser_consume( parser, TokenID::Keyword );
 				Node *count = new_node( parser, NodeID::Count, token );
-				count->left = node;
+				count->left = idNode;
 				return count;
 			}
 
@@ -447,7 +448,19 @@ static Node *parse_parse_dot_access( Parser *parser, Node *node )
 		else if ( parser->token->id == TokenID::Identifier )
 		{
 			token = parser_consume( parser, TokenID::Identifier );
-			node->children.push_back( new_node( parser, NodeID::Identifier, token ) );
+
+			switch ( idNode->type )
+			{
+			case NodeID::Identifier:
+			case NodeID::CreateIdentifier:
+				idNode->children.push_back( new_node( parser, NodeID::Identifier, token ) );
+				break;
+
+			default:
+				node = idNode;
+				idNode = new_node( parser, NodeID::Identifier, token );
+				idNode->left = node;
+			}
 		}
 		else
 		{
@@ -456,20 +469,19 @@ static Node *parse_parse_dot_access( Parser *parser, Node *node )
 		}
 	}
 
-	return node;
+	return idNode;
 }
 
 static Node *parser_parse_identifier_use( Parser *parser, Node *node )
 {
-	Node *idNode = node;
-
 	node = parse_parse_dot_access( parser, node );
 
 	switch ( parser->token->id )
 	{
 	case TokenID::Assign:
 		{
-			idNode->type = NodeID::CreateIdentifier;
+			if ( node->type == NodeID::Identifier )
+				node->type = NodeID::CreateIdentifier;
 			Token *token = parser_consume( parser, TokenID::Assign );
 			parser_ignore( parser, TokenID::NewLine );
 			if ( parser->token->id == TokenID::BraceOpen )
@@ -483,7 +495,8 @@ static Node *parser_parse_identifier_use( Parser *parser, Node *node )
 
 	case TokenID::ColonAssign:
 		{
-			idNode->type = NodeID::CreateIdentifier;
+			if ( node->type == NodeID::Identifier )
+				node->type = NodeID::CreateIdentifier;
 			Token *token = parser_consume( parser, TokenID::ColonAssign );
 			Node *declFunc = new_node( parser, NodeID::DeclFunc, token );
 			declFunc->left = node;
