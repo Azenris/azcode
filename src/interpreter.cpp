@@ -25,16 +25,15 @@ static Value process_codeblock( Interpreter *interpreter, Node *node )
 	return value;
 }
 
-static void print_string( Interpreter *interpreter, Node *node )
+static void print_string( Interpreter *interpreter, std::ostream &out, Node *node, Node *conditionNode, Node *argNodes )
 {
-	Value value = interpreter->run( node->left );
+	Value value = interpreter->run( conditionNode );
 
 	if ( value.type == ValueType::StringLiteral && !value.valueString.empty() )
 	{
 		std::vector<Value> args;
-		args.reserve( node->children.size() );
-		Node *arg = node->right;
-		for ( auto argNode : node->children )
+		args.reserve( argNodes->children.size() );
+		for ( auto argNode : argNodes->children )
 			args.push_back( interpreter->run( argNode ) );
 		const char *fmt = value.valueString.c_str();
 		const char *start = fmt;
@@ -51,7 +50,7 @@ static void print_string( Interpreter *interpreter, Node *node )
 					if ( to_int( &num, fmt, &end ) == ToIntResult::Success && num >= 0 && num < static_cast<i32>( args.size() ) )
 					{
 						fmt = end;
-						std::cout << std::string_view( start, fmt - ( start + 2 ) ) << args[ num ];
+						out << std::string_view( start, fmt - ( start + 2 ) ) << args[ num ];
 						start = fmt;
 					}
 					else
@@ -63,7 +62,7 @@ static void print_string( Interpreter *interpreter, Node *node )
 				else
 				{
 					fmt += 1;
-					std::cout << std::string_view( start, fmt - start );
+					out << std::string_view( start, fmt - start );
 					fmt += 1;
 					start = fmt;
 				}
@@ -73,7 +72,7 @@ static void print_string( Interpreter *interpreter, Node *node )
 				fmt += 1;
 			}
 		}
-		std::cout << std::string_view( start, fmt - start );
+		out << std::string_view( start, fmt - start );
 	}
 	else
 	{
@@ -339,7 +338,7 @@ Value Interpreter::run( Node *node )
 			}
 			else
 			{
-				print_string( this, node );
+				print_string( this, std::cout, node, node->left, node );
 			}
 		}
 		break;
@@ -352,8 +351,38 @@ Value Interpreter::run( Node *node )
 			}
 			else
 			{
-				print_string( this, node );
+				print_string( this, std::cout, node, node->left, node );
 				std::cout << std::endl;
+			}
+		}
+		break;
+
+	case NodeID::Assert:
+		{
+			if ( !run( node->left ).get_as_bool( node ) )
+			{
+				std::cerr << "[Interpreter] (ASSERT) (Line: " << node->token->line << ")";
+
+				if ( node->right )
+				{
+					std::cerr << ": ";
+
+					if ( node->children.empty() )
+					{
+						std::cerr << run( node->right ) << std::endl;
+					}
+					else
+					{
+						print_string( this, std::cerr, node, node->right, node );
+						std::cerr << std::endl;
+					}
+				}
+				else
+				{
+					std::cerr << std::endl;
+				}
+
+				exit( RESULT_CODE_ASSERT_FAILED );
 			}
 		}
 		break;

@@ -8,11 +8,11 @@ for /F %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
 SET mypath=%~dp0
 pushd %mypath%\final\debug\
 
-call:run_test arithmetic 16
-call:run_test functions 16
-call:run_test objects 21
-call:run_test printing 0
-
+call:run_test arithmetic
+call:run_test functions
+call:run_test objects
+call:run_test printing
+call:run_test arrays
 
 popd
 exit /b
@@ -21,7 +21,7 @@ exit /b
 
 :run_test
 azcode.exe %mypath%example\%1.aas > NUL
-if %ERRORLEVEL% == %2 (
+if %ERRORLEVEL% == 0 (
 	echo !ESC![7m[Success]!ESC![0m : %1
 ) else (
 	echo !ESC![101;93m[ Failed]!ESC![0m : %1

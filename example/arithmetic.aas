@@ -10,4 +10,6 @@ total += somethingElse
 
 somethingElse = total
 
-return ( somethingElse + 2 ) / 2 + 3 * 3 + 2
+result = ( somethingElse + 2 ) / 2 + 3 * 3 + 2
+
+assert result == 16

@@ -53,6 +53,10 @@ constexpr KeywordType Keywords[] =
 		.id = KeywordID::Count,
 		.name = "Count",
 	},
+	{
+		.id = KeywordID::Assert,
+		.name = "Assert",
+	},
 };
 
 struct TokenType

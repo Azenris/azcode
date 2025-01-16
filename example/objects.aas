@@ -18,4 +18,6 @@ obj3 = {
 
 obj4 = { frame = { this = 4 } }
 
-return test + obj2.cake + obj3.f( 2 ) + obj4.frame.this
+result = test + obj2.cake + obj3.f( 2 ) + obj4.frame.this
+
+assert result == 21

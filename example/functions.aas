@@ -20,4 +20,6 @@ func4 := ( arg1 ) {
 	return arg1 + this + that
 }
 
-return test + test2 + func4( 1 )
+result = test + test2 + func4( 1 )
+
+assert result == 16

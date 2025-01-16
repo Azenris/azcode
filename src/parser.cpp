@@ -333,6 +333,26 @@ static Node *parser_parse_keyword( Parser *parser )
 			}
 		}
 		break;
+
+	case KeywordID::Assert:
+		{
+			Node *node = new_node( parser, NodeID::Assert, token );
+			parser_ignore( parser, TokenID::NewLine );
+			node->left = parser_parse( parser );
+			parser_ignore( parser, TokenID::NewLine );
+			if ( parser->token->id == TokenID::Comma )
+			{
+				parser_consume( parser, TokenID::Comma );
+				node->right = parser_parse( parser );
+				while ( parser->token->id == TokenID::Comma )
+				{
+					parser_consume( parser, TokenID::Comma );
+					node->children.push_back( parser_parse( parser ) );
+				}
+			}
+			return node;
+		}
+		break;
 	}
 
 	std::cerr << "[Parser] Unexpected keyword token( " << *parser->token << " )." << std::endl;

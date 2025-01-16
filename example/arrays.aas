@@ -1,0 +1,7 @@
+
+var = [ 11, 22, 33, 44, 55 ]
+tmp = [ 5, 6, 7, 8, 9, 102 ]
+
+result = var[ 2 ] + tmp[ 1 ]
+
+assert result == 39

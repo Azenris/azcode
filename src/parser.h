@@ -104,6 +104,10 @@ constexpr NodeType NodeTypes[] =
 		.id = NodeID::Println,
 		.name = "Println",
 	},
+	{
+		.id = NodeID::Assert,
+		.name = "Assert",
+	},
 };
 
 std::ostream & operator << ( std::ostream &out, const NodeID &nodeID );

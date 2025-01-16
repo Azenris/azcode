@@ -64,6 +64,7 @@ enum class KeywordID
 	Print,
 	Println,
 	Count,
+	Assert,
 };
 
 enum class NodeID
@@ -90,6 +91,7 @@ enum class NodeID
 	Return,
 	Print,
 	Println,
+	Assert,
 };
 
 enum class ValueType
