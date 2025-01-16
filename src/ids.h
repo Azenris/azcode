@@ -63,7 +63,6 @@ enum class KeywordID
 	Else,
 	Print,
 	Println,
-	Count,
 	Assert,
 };
 
@@ -78,7 +77,6 @@ enum class NodeID
 	StructAssignment,
 	CreateArray,
 	ArrayAccess,
-	Count,
 	Assignment,
 	Operation,
 	AssignmentOp,
@@ -105,5 +103,6 @@ enum class ValueType
 	TokenID,
 	KeywordID,
 	Node,
+	InbuiltFunc,
 	Reference,
 };

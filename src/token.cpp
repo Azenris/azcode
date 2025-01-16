@@ -23,7 +23,6 @@ static std::unordered_map<std::string, KeywordID> KeywordsMap =
 	{ "else", KeywordID::Else },
 	{ "print", KeywordID::Print },
 	{ "println", KeywordID::Println },
-	{ "count", KeywordID::Count },
 	{ "assert", KeywordID::Assert },
 };
 

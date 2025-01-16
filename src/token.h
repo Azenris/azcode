@@ -50,10 +50,6 @@ constexpr KeywordType Keywords[] =
 		.name = "Println",
 	},
 	{
-		.id = KeywordID::Count,
-		.name = "Count",
-	},
-	{
 		.id = KeywordID::Assert,
 		.name = "Assert",
 	},

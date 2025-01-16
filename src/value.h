@@ -9,6 +9,7 @@
 #include "ids.h"
 
 struct Node;
+struct Interpreter;
 
 constexpr i32 TypeShift = 16;
 
@@ -16,6 +17,8 @@ constexpr i32 TypeShift = 16;
 
 struct Value
 {
+	using InBuiltFunc = Value (*)( Interpreter *interpreter, Value &self, Node *args );
+
 	ValueType type;
 	int scope;
 
@@ -27,6 +30,7 @@ struct Value
 		i64 valueI64;
 		Node *valueNode;
 		Value *valueRef;
+		InBuiltFunc valueInbuiltFunc;
 	};
 
 	std::string valueString;
@@ -100,6 +104,13 @@ struct Value
 		: type( ValueType::Node )
 		, scope( -2 )
 		, valueNode( node )
+	{
+	}
+
+	Value( InBuiltFunc inbuiltFunc )
+		: type( ValueType::InbuiltFunc )
+		, scope( -2 )
+		, valueInbuiltFunc( inbuiltFunc )
 	{
 	}
 

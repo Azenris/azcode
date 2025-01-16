@@ -17,6 +17,7 @@ Value & Value::operator = ( const Value &rhs )
 	case ValueType::NumberI32: l.valueI32 = r.valueI32; break;
 	case ValueType::NumberI64: l.valueI64 = r.valueI64; break;
 	case ValueType::Node: l.valueNode = r.valueNode; break;
+	case ValueType::InbuiltFunc: l.valueInbuiltFunc = r.valueInbuiltFunc; break;
 	case ValueType::Reference: l.valueRef = r.valueRef; break;
 	}
 
@@ -37,9 +38,10 @@ bool Value::get_as_bool( Node *node )
 	case ValueType::StringLiteral: return !valueString.empty();
 	case ValueType::Struct: return !map.empty();
 	case ValueType::Arr: return !arr.empty();
-	case ValueType::TokenID: return true;
-	case ValueType::KeywordID: return true;
+	case ValueType::TokenID: return false;
+	case ValueType::KeywordID: return false;
 	case ValueType::Node: return valueNode;
+	case ValueType::InbuiltFunc: return false;
 	case ValueType::Reference: return valueRef->get_as_bool( node );
 	}
 
@@ -123,6 +125,7 @@ i64 Value::count() const
 	case ValueType::TokenID: return 0;
 	case ValueType::KeywordID: return 0;
 	case ValueType::Node: return 0;
+	case ValueType::InbuiltFunc: return 0;
 	case ValueType::Reference: return valueRef->count();
 	}
 	return 0;
@@ -180,9 +183,10 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 		}
 		return out << " ]{" << value.arr.size() << "}";
 
-	case ValueType::TokenID:			return out << value.valueString << " (id:" << static_cast<i32>( value.tokenID ) << ")";
-	case ValueType::KeywordID:			return out << value.valueString << " (id:" << static_cast<i32>( value.keywordID ) << ")";
+	case ValueType::TokenID:			return out << value.valueString;
+	case ValueType::KeywordID:			return out << value.valueString;
 	case ValueType::Node:				return out << "Node[" << value.valueNode << "]";
+	case ValueType::InbuiltFunc:		return out << "InbuiltFunc";
 	case ValueType::Reference:			return out << *value.valueRef;
 	}
 
@@ -202,6 +206,7 @@ std::ostream & operator << ( std::ostream &out, const ValueType &valueType )
 	case ValueType::TokenID:			return out << "TokenID";
 	case ValueType::KeywordID:			return out << "KeywordID";
 	case ValueType::Node:				return out << "Node";
+	case ValueType::InbuiltFunc:		return out << "InbuiltFunc";
 	case ValueType::Reference:			return out << "Reference";
 	}
 

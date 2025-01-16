@@ -434,20 +434,7 @@ static Node *parse_parse_dot_access( Parser *parser, Node *node )
 		parser_consume( parser, TokenID::Period );
 		parser_ignore( parser, TokenID::NewLine );
 
-		if ( parser->token->id == TokenID::Keyword )
-		{
-			if ( parser->token->value.keywordID == KeywordID::Count )
-			{
-				token = parser_consume( parser, TokenID::Keyword );
-				Node *count = new_node( parser, NodeID::Count, token );
-				count->left = idNode;
-				return count;
-			}
-
-			std::cerr << "[Parser] Unexpected dot keyword token( " << *parser->token << " )." << std::endl;
-			exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
-		}
-		else if ( parser->token->id == TokenID::Identifier )
+		if ( parser->token->id == TokenID::Identifier )
 		{
 			token = parser_consume( parser, TokenID::Identifier );
 

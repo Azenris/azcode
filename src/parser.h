@@ -53,10 +53,6 @@ constexpr NodeType NodeTypes[] =
 		.name = "ArrayAccess",
 	},
 	{
-		.id = NodeID::Count,
-		.name = "Count",
-	},
-	{
 		.id = NodeID::Assignment,
 		.name = "Assignment",
 	},

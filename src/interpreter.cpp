@@ -4,6 +4,41 @@
 
 #include "interpreter.h"
 
+static Value BuiltInNode_Array_Push( Interpreter *interpreter, Value &self, Node *args )
+{
+	Value &l = self.deref();
+	for ( auto arg : args->children )
+		l.arr.push_back( interpreter->run( arg ) );
+	return 0;
+}
+
+static Value BuiltInNode_Array_Pop( Interpreter *interpreter, Value &self, Node *args )
+{
+	(void)interpreter;
+	(void)args;
+
+	Value &l = self.deref();
+	Value ret = l.arr.back();
+	l.arr.pop_back();
+	return ret;
+}
+
+static Value BuiltInNode_Array_Count( Interpreter *interpreter, Value &self, Node *args )
+{
+	(void)interpreter;
+	(void)args;
+
+	return static_cast<i64>( self.deref().arr.size() );
+}
+
+static Value BuiltInNode_Struct_Count( Interpreter *interpreter, Value &self, Node *args )
+{
+	(void)interpreter;
+	(void)args;
+
+	return static_cast<i64>( self.deref().map.size() );
+}
+
 static Value process_codeblock( Interpreter *interpreter, Node *node )
 {
 	interpreter->scope_push();
@@ -128,6 +163,9 @@ Value Interpreter::run( Node *node )
 			Value &lwo = get_or_create_value( node->left );
 			lwo.clear();
 			lwo.type = ValueType::Struct;
+			// add some inbuilt functions
+			lwo.map[ "count" ] = BuiltInNode_Struct_Count;
+			// provided initialisation data
 			for ( auto child : node->children )
 			{
 				switch ( child->type )
@@ -155,6 +193,11 @@ Value Interpreter::run( Node *node )
 	case NodeID::CreateArray:
 		{
 			Value arr( ValueType::Arr );
+			// add some inbuilt functions
+			arr.map[ "push" ] = BuiltInNode_Array_Push;
+			arr.map[ "pop" ] = BuiltInNode_Array_Pop;
+			arr.map[ "count" ] = BuiltInNode_Array_Count;
+			// provided initialisation data
 			for ( auto child : node->children )
 				arr.arr.push_back( run( child ) );
 			return arr;
@@ -163,20 +206,6 @@ Value Interpreter::run( Node *node )
 
 	case NodeID::ArrayAccess:
 		return run( node->left )[ run( node->right ).get_as_i64( node ) ];
-
-	case NodeID::Count:
-		{
-			Value &value = get_value( node->left );
-
-			if ( value.type == ValueType::Struct )
-			{
-				auto iter = value.map.find( node->token->value.get_as_string( node ) );
-				if ( iter != value.map.end() )
-					return iter->second;
-			}
-			return value.count();
-		}
-		break;
 
 	case NodeID::Assignment:
 		return run( node->left ) = run( node->right );
@@ -308,6 +337,11 @@ Value Interpreter::run( Node *node )
 					scope_pop();
 				}
 			}
+			else if ( call.type == ValueType::InbuiltFunc )
+			{
+				std::cerr << "NYI else if ( call.type == ValueType::InbuiltFunc )" << std::endl;
+				// TODO fff
+			}
 			else
 			{
 				std::cerr << "[Interpreter] Not callable \"" << node->left->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
@@ -410,6 +444,32 @@ Value *Interpreter::chain_access( Node *node, Value *value )
 			value->scope = scope;
 		}
 		return value;
+	}
+
+	return nullptr;
+}
+
+Value *Interpreter::get_value_if_exists( Node *node )
+{
+	if ( node->left )
+	{
+		Value value = run( node->left );
+		return chain_access( node, &value );
+	}
+
+	auto iter = data.find( node->value.valueString );
+	if ( iter != data.end() )
+	{
+		std::vector<Value*> &values = iter->second;
+		for ( i32 scopeIdx = std::min( scope, static_cast<i32>( values.size() ) - 1 ); scopeIdx >= 0; --scopeIdx )
+		{
+			if ( values[ scopeIdx ] )
+			{
+				Value *value = chain_access( node, values[ scopeIdx ] );
+				if ( value )
+					return value;
+			}
+		}
 	}
 
 	return nullptr;
