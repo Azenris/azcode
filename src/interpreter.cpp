@@ -162,7 +162,7 @@ Value Interpreter::run( Node *node )
 		break;
 
 	case NodeID::ArrayAccess:
-		return run( node->left )[ static_cast<i64>( run( node->right ) ) ];
+		return run( node->left )[ run( node->right ).get_as_i64( node ) ];
 
 	case NodeID::Count:
 		{
@@ -317,7 +317,7 @@ Value Interpreter::run( Node *node )
 
 	case NodeID::If:
 		{
-			if ( run( node->left ) )
+			if ( run( node->left ).get_as_bool( node ) )
 			{
 				return process_codeblock( this, node );
 			}
