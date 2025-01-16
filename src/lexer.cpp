@@ -115,7 +115,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			}
 
 			std::cerr << "[Lexer] Could not convert value to int ( " << lexer->txt << " )." << std::endl;
-			exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
+			exit( RESULT_CODE_CANNOT_CONVERT_TO_INT );
 		}
 
 		switch ( c )

@@ -6,18 +6,22 @@
 
 static Value process_codeblock( Interpreter *interpreter, Node *node )
 {
-	interpreter->data.emplace_back();
+	interpreter->scope_push();
 	Value value;
 	for ( auto child : node->children )
 	{
 		value = interpreter->run( child );
 		if ( child->type == NodeID::Return )
 		{
-			interpreter->data.pop_back();
+			// check if the value will go out of scope with the return
+			// it will have to pass-by-value
+			if ( value.deref().scope == interpreter->scope )
+				value = value.deref();
+			interpreter->scope_pop();
 			return value;
 		}
 	}
-	interpreter->data.pop_back();
+	interpreter->scope_pop();
 	return value;
 }
 
@@ -84,14 +88,14 @@ Value Interpreter::run( Node *node )
 	{
 	case NodeID::Entry:
 		{
+			scope = 0;
+
 			data.clear();
-			data.push_back(
-			{
+			// data.insert(
+			// {
 				// Built-In Variables
-				{
-					{ "Get-Version", { "0.0.1" } }
-				},
-			} );
+				// { "$Version", { { "0.0.1" } } }
+			// } );
 
 			Value value;
 			for ( auto child : node->children )
@@ -275,10 +279,16 @@ Value Interpreter::run( Node *node )
 					}
 
 					// -- setup arguments --
-					data.emplace_back();
+
+					scope_push();
+
+					int funcScope = scope;
 
 					for ( i32 argIdx = 0, argCount = static_cast<i32>( node->children.size() ); argIdx < argCount; ++argIdx )
-						data[ funcNode->scope ][ funcNode->right->children[ argIdx ]->value.valueString ] = run( node->children[ argIdx ] );
+					{
+						Node *argNode = funcNode->right->children[ argIdx ];
+						get_or_create_value( data[ argNode->value.valueString ], funcScope, argNode ) = run( node->children[ argIdx ] );
+					}
 
 					// -- process the codeblock of the function --
 					for ( auto child : funcNode->children )
@@ -288,13 +298,14 @@ Value Interpreter::run( Node *node )
 						{
 							// check if the value will go out of scope with the return
 							// it will have to pass-by-value
-							if ( value.deref().scope == static_cast<i32>( data.size() - 1 ) )
+							if ( value.deref().scope == scope )
 								value = value.deref();
-							data.pop_back();
+							scope_pop();
 							return value;
 						}
 					}
-					data.pop_back();
+
+					scope_pop();
 				}
 			}
 			else
@@ -353,88 +364,90 @@ Value Interpreter::run( Node *node )
 
 Value &Interpreter::get_value( Node *node )
 {
-	Value *value = nullptr;
-
-	for ( i32 scope = static_cast<i32>( data.size() ) - 1; scope >= 0; --scope )
+	auto iter = data.find( node->value.valueString );
+	if ( iter != data.end() )
 	{
-		auto iter = data[ scope ].find( node->value.valueString );
-		if ( iter != data[ scope ].end() )
+		std::vector<Value*> &values = iter->second;
+		for ( i32 scopeIdx = std::min( scope, static_cast<i32>( values.size() ) - 1 ); scopeIdx >= 0; --scopeIdx )
 		{
-			value = &iter->second;
-			break;
-		}
-	}
-
-	if ( value && value->type != ValueType::Undefined )
-	{
-		value->scope = static_cast<i32>( data.size() - 1 );
-
-		const char *from = node->value.valueString.c_str();
-
-		for ( auto &child : node->children )
-		{
-			auto iter = value->map.find( child->value.valueString );
-			if ( iter == value->map.end() )
+			if ( values[ scopeIdx ] )
 			{
-				std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". (Line: " << child->token->line << ")" << std::endl;
-				exit( RESULT_CODE_VARIABLE_UNKNOWN );
+				Value *value = values[ scopeIdx ];
+				if ( value->type != ValueType::Undefined )
+				{
+					const char *from = node->value.valueString.c_str();
+					for ( auto &child : node->children )
+					{
+						auto subIter = value->map.find( child->value.valueString );
+						if ( subIter == value->map.end() )
+						{
+							std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". (Line: " << child->token->line << ")" << std::endl;
+							exit( RESULT_CODE_VARIABLE_UNKNOWN );
+						}
+						value = &subIter->second;
+						from = child->value.valueString.c_str();
+						value->scope = scope;
+					}
+					return *value;
+				}
 			}
-
-			value = &iter->second;
-
-			from = child->value.valueString.c_str();
-
-			value->scope = static_cast<i32>( data.size() - 1 );
 		}
-
-		return *value;
 	}
 
 	std::cerr << "[Interpreter] Variable unknown \"" << node->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
 	exit( RESULT_CODE_VARIABLE_UNKNOWN );
 }
 
+Value &Interpreter::get_or_create_value( std::vector<Value*> &values, i32 valueScope, Node *node )
+{
+	for ( i32 i = 0, count = ( valueScope + 1 ) - static_cast<i32>( values.size() ); i < count; ++i )
+		values.push_back( nullptr );
+	Value *value = values[ valueScope ];
+	if ( value )
+		return *value;
+	value = new Value;
+	value->scope = valueScope;
+	if ( valueScope > 0 )
+		scopeWatch[ valueScope - 1 ].push_back( node->value.valueString );
+	values[ valueScope ] = value;
+	return *value;
+}
+
 Value &Interpreter::get_or_create_value( Node *node )
 {
 	Value *value = nullptr;
 
+	std::vector<Value*> &values = data[ node->value.valueString ];
+
 	// Check if its a local variable, will use the current scope
 	if ( node->scope == -1 )
 	{
-		value = &data.back()[ node->value.valueString ];
-		value->scope = static_cast<i32>( data.size() - 1 );
+		value = &get_or_create_value( values, scope, node );
 	}
 	else
 	{
 		bool found = false;
 
-		for ( i32 scope = static_cast<i32>( data.size() ) - 1; scope >= 0; --scope )
+		for ( i32 scopeIdx = std::min( scope, static_cast<i32>( values.size() ) - 1 ); scopeIdx >= 0; --scopeIdx )
 		{
-			auto iter = data[ scope ].find( node->value.valueString );
-
-			if ( iter != data[ scope ].end() )
+			if ( values[ scopeIdx ] )
 			{
-				value = &iter->second;
+				value = values[ scopeIdx ];
 				found = true;
 				break;
 			}
 		}
 
 		if ( !found )
-		{
-			value = &data[ 0 ][ node->value.valueString ];
-			value->scope = static_cast<i32>( data.size() - 1 );
-		}
+			value = &get_or_create_value( values, 0, node );
 	}
 
 	if ( value )
 	{
-		int scope = value->scope;
-
 		for ( auto &child : node->children )
 		{
 			value = &value->map[ child->value.valueString ];
-			value->scope = scope;
+			value->scope = -4;
 		}
 	}
 
@@ -444,4 +457,23 @@ Value &Interpreter::get_or_create_value( Node *node )
 void Interpreter::cleanup()
 {
 	data.clear();
+}
+
+void Interpreter::scope_push()
+{
+	scope += 1;
+	scopeWatch.emplace_back();
+}
+
+void Interpreter::scope_pop()
+{
+	for ( auto &entry : scopeWatch.back() )
+	{
+		std::vector<Value*> &values = data[ entry ];
+		delete values.back();
+		values.pop_back();
+	}
+
+	scopeWatch.pop_back();
+	scope -= 1;
 }
