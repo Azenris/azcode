@@ -76,7 +76,8 @@ int main( int argc, char *argv[] )
 	parser.cleanup();
 	interpreter.cleanup();
 
-	std::cout << "ReturnCode (" << ret << ")." << std::endl;
+	if ( ret != 0 )
+		std::cerr << "ReturnCode (" << ret << ")." << std::endl;
 
 	return ret;
 }

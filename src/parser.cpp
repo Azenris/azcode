@@ -169,6 +169,8 @@ static Node *parser_parse_func_decl_args( Parser *parser )
 		{
 			parser_consume( parser, TokenID::Comma );
 			parser_ignore( parser, TokenID::NewLine );
+			if ( parser->token->id == TokenID::ParenClose )
+				break;
 			args->children.push_back( parser_parse( parser ) );
 			parser_ignore( parser, TokenID::NewLine );
 		}
@@ -817,6 +819,8 @@ static Node *parser_parse_squareopen( Parser *parser )
 		{
 			parser_consume( parser, TokenID::Comma );
 			parser_ignore( parser, TokenID::NewLine );
+			if ( parser->token->id == TokenID::SquareClose )
+				break;
 			node->children.push_back( parser_parse( parser ) );
 			parser_ignore( parser, TokenID::NewLine );
 		}

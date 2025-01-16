@@ -2,6 +2,35 @@
 var = [ 11, 22, 33, 44, 55 ]
 tmp = [ 5, 6, 7, 8, 9, 102 ]
 
+assert var[ 0 ] == 11
+assert tmp[ 5 ] == 102
+
 result = var[ 2 ] + tmp[ 1 ]
 
 assert result == 39
+
+arr1 = [ 1, 2, 3 ]
+assert arr1.count == 3
+
+arr2 = [ 1, 2, 3, ]
+assert arr2.count == 3
+
+arr3 = [
+	1, 2, 3,
+]
+assert arr3.count == 3
+
+arr4 = arr3
+assert arr4.count == 3
+
+arr = []
+assert arr.count == 0
+
+arr.push( 4 )
+assert arr.count == 1
+
+arr.push( 6 )
+assert arr.count == 2
+
+arr.pop( 0 )
+assert arr.count == 1
