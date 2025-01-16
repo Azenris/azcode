@@ -119,6 +119,7 @@ struct Value
 	void clear();
 	Value &deref();
 	const Value &deref() const;
+	void unfold();
 };
 
 std::ostream & operator << ( std::ostream &out, const Value &value );

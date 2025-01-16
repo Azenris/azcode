@@ -16,7 +16,7 @@ static Value process_codeblock( Interpreter *interpreter, Node *node )
 			// check if the value will go out of scope with the return
 			// it will have to pass-by-value
 			if ( value.deref().scope == interpreter->scope )
-				value = value.deref();
+				value.unfold();
 			interpreter->scope_pop();
 			return value;
 		}
@@ -25,17 +25,18 @@ static Value process_codeblock( Interpreter *interpreter, Node *node )
 	return value;
 }
 
-static void print_string( Interpreter *interpreter, std::ostream &out, Node *node, Node *conditionNode, Node *argNodes )
+static void print_string( Interpreter *interpreter, std::ostream &out, Node *node, Node *stringNode, Node *argNodes )
 {
-	Value value = interpreter->run( conditionNode );
+	Value value = interpreter->run( stringNode );
+	Value &str = value.deref();
 
-	if ( value.type == ValueType::StringLiteral && !value.valueString.empty() )
+	if ( str.type == ValueType::StringLiteral && !str.valueString.empty() )
 	{
 		std::vector<Value> args;
 		args.reserve( argNodes->children.size() );
 		for ( auto argNode : argNodes->children )
 			args.push_back( interpreter->run( argNode ) );
-		const char *fmt = value.valueString.c_str();
+		const char *fmt = str.valueString.c_str();
 		const char *start = fmt;
 		char *end;
 		while ( *fmt != '\0' )
@@ -298,7 +299,7 @@ Value Interpreter::run( Node *node )
 							// check if the value will go out of scope with the return
 							// it will have to pass-by-value
 							if ( value.deref().scope == scope )
-								value = value.deref();
+								value.unfold();
 							scope_pop();
 							return value;
 						}

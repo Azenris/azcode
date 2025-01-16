@@ -680,3 +680,19 @@ ToIntResult to_int( u64 *value, char const *str, char **endOut, i32 base )
 	*value = l;
 	return ToIntResult::Success;
 }
+
+void Value::unfold()
+{
+	if ( type != ValueType::Reference )
+		return;
+
+	// Deref before changing the type
+	const Value &r = deref();
+
+	// Make sure its not considered reference, so the overloaded assignment operator
+	// will assign directly to this Value
+	type = ValueType::Undefined;
+
+	// Copy the data to this value
+	*this = r;
+}

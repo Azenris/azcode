@@ -15,4 +15,3 @@ print "-"
 println ""
 println temp2
 
-println "No arguments, so it prints them all sequentially: ", 1, " Cake Size: ", 5, " ", temp2
