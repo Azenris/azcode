@@ -1,6 +1,8 @@
 
 #include <iostream>
 #include <print>
+#include <algorithm>
+#include <functional>
 
 #include "interpreter.h"
 
@@ -29,6 +31,28 @@ static Value BuiltInNode_Array_Count( Interpreter *interpreter, Value &self, Nod
 	(void)args;
 
 	return static_cast<i64>( self.deref().arr.size() );
+}
+
+static Value BuiltInNode_Array_Sort( Interpreter *interpreter, Value &self, Node *args )
+{
+	(void)interpreter;
+
+	Value &l = self.deref();
+
+	if ( args->children.empty() )
+	{
+		std::ranges::sort( l.arr, std::ranges::less() );
+	}
+	else if ( interpreter->run( args->children[ 0 ] ).get_as_bool( args ) )
+	{
+		std::ranges::sort( l.arr, std::ranges::less() );
+	}
+	else
+	{
+		std::ranges::sort( l.arr, std::ranges::greater() );
+	}
+
+	return 0;
 }
 
 static Value BuiltInNode_Struct_Count( Interpreter *interpreter, Value &self, Node *args )
@@ -192,6 +216,7 @@ Value Interpreter::run( Node *node )
 			arr.map[ "push" ] = BuiltInNode_Array_Push;
 			arr.map[ "pop" ] = BuiltInNode_Array_Pop;
 			arr.map[ "count" ] = BuiltInNode_Array_Count;
+			arr.map[ "sort" ] = BuiltInNode_Array_Sort;
 			// provided initialisation data
 			for ( auto child : node->children )
 				arr.arr.push_back( run( child ) );
@@ -304,16 +329,13 @@ Value Interpreter::run( Node *node )
 						exit( RESULT_CODE_FUNCTION_ARG_COUNT );
 					}
 
-					// -- setup arguments --
-
 					scope_push( chainedDotAccess );
 
-					int funcScope = scope;
-
+					// -- setup arguments --
 					for ( i32 argIdx = 0, argCount = static_cast<i32>( node->children.size() ); argIdx < argCount; ++argIdx )
 					{
 						Node *argNode = funcNode->right->children[ argIdx ];
-						get_or_create_value( data[ argNode->value.valueString ], funcScope, argNode ) = run( node->children[ argIdx ] );
+						get_or_create_value( data[ argNode->value.valueString ], scope, argNode ) = run( node->children[ argIdx ] );
 					}
 
 					// -- process the codeblock of the function --

@@ -140,6 +140,11 @@ std::ostream & operator << ( std::ostream &out, const Value &value );
 bool operator == ( const Value &lhs, const Value &rhs );
 bool operator != ( const Value &lhs, const Value &rhs );
 
+bool operator < ( const Value &lhs, const Value &rhs );
+bool operator > ( const Value &lhs, const Value &rhs );
+bool operator <= ( const Value &lhs, const Value &rhs );
+bool operator >= ( const Value &lhs, const Value &rhs );
+
 Value operator - ( const Value &lhs, const Value &rhs );
 Value & operator -= ( Value &lhs, const Value &rhs );
 Value operator + ( const Value &lhs, const Value &rhs );

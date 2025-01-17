@@ -270,6 +270,94 @@ bool operator != ( const Value &lhs, const Value &rhs )
 	return !( lhs == rhs );
 }
 
+bool operator < ( const Value &lhs, const Value &rhs )
+{
+	const Value &l = lhs.deref();
+	const Value &r = rhs.deref();
+
+	switch ( TYPE_PAIR( static_cast<i32>( l.type ), static_cast<i32>( r.type ) ) )
+	{
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return l.valueI32 < r.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return l.valueI32 < r.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI32 ):			return l.valueI64 < r.valueI32;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return l.valueI64 < r.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return l.valueI32 < static_cast<i32>( std::stoll( r.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return static_cast<i32>( std::stoll( l.valueString ) ) < l.valueI32;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return l.valueI64 < std::stoll( r.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::stoll( l.valueString ) < r.valueI64;
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::stoll( l.valueString ) < std::stoll( r.valueString );
+	}
+
+	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+}
+
+bool operator > ( const Value &lhs, const Value &rhs )
+{
+	const Value &l = lhs.deref();
+	const Value &r = rhs.deref();
+
+	switch ( TYPE_PAIR( static_cast<i32>( l.type ), static_cast<i32>( r.type ) ) )
+	{
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return l.valueI32 > r.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return l.valueI32 > r.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI32 ):			return l.valueI64 > r.valueI32;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return l.valueI64 > r.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return l.valueI32 > static_cast<i32>( std::stoll( r.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return static_cast<i32>( std::stoll( l.valueString ) ) > l.valueI32;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return l.valueI64 > std::stoll( r.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::stoll( l.valueString ) > r.valueI64;
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::stoll( l.valueString ) > std::stoll( r.valueString );
+	}
+
+	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+}
+
+bool operator <= ( const Value &lhs, const Value &rhs )
+{
+	const Value &l = lhs.deref();
+	const Value &r = rhs.deref();
+
+	switch ( TYPE_PAIR( static_cast<i32>( l.type ), static_cast<i32>( r.type ) ) )
+	{
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return l.valueI32 <= r.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return l.valueI32 <= r.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI32 ):			return l.valueI64 <= r.valueI32;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return l.valueI64 <= r.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return l.valueI32 <= static_cast<i32>( std::stoll( r.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return static_cast<i32>( std::stoll( l.valueString ) ) <= l.valueI32;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return l.valueI64 <= std::stoll( r.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::stoll( l.valueString ) <= r.valueI64;
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::stoll( l.valueString ) <= std::stoll( r.valueString );
+	}
+
+	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+}
+
+bool operator >= ( const Value &lhs, const Value &rhs )
+{
+	const Value &l = lhs.deref();
+	const Value &r = rhs.deref();
+
+	switch ( TYPE_PAIR( static_cast<i32>( l.type ), static_cast<i32>( r.type ) ) )
+	{
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI32 ):			return l.valueI32 >= r.valueI32;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::NumberI64 ):			return l.valueI32 >= r.valueI64;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI32 ):			return l.valueI64 >= r.valueI32;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::NumberI64 ):			return l.valueI64 >= r.valueI64;
+	case TYPE_PAIR( ValueType::NumberI32, ValueType::StringLiteral ):		return l.valueI32 >= static_cast<i32>( std::stoll( r.valueString ) );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI32 ):		return static_cast<i32>( std::stoll( l.valueString ) ) >= l.valueI32;
+	case TYPE_PAIR( ValueType::NumberI64, ValueType::StringLiteral ):		return l.valueI64 >= std::stoll( r.valueString );
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		return std::stoll( l.valueString ) >= r.valueI64;
+	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::stoll( l.valueString ) >= std::stoll( r.valueString );
+	}
+
+	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
+	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+}
+
 Value operator - ( const Value &lhs, const Value &rhs )
 {
 	const Value &l = lhs.deref();

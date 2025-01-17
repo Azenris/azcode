@@ -21,3 +21,28 @@ obj4 = { frame = { this = 4 } }
 result = test + obj2.cake + obj3.f( 2 ) + obj4.frame.this
 
 assert result == 21
+
+test = {
+	a = 1,
+	this = {
+		b = 2,
+		too = {
+			c = 3,
+			f1 := () {
+				return self.c
+			},
+			f2 := () {
+				return self.parent.b
+			},
+			f3 := () {
+				return self.parent.parent.a
+			},
+		},
+	}
+}
+
+assert test.this.too.c == 3
+
+assert test.this.too.f1() == 3
+assert test.this.too.f2() == 2
+assert test.this.too.f3() == 1
