@@ -10,27 +10,27 @@ result = var[ 2 ] + tmp[ 1 ]
 assert result == 39
 
 arr1 = [ 1, 2, 3 ]
-assert arr1.count == 3
+assert arr1.count() == 3
 
 arr2 = [ 1, 2, 3, ]
-assert arr2.count == 3
+assert arr2.count() == 3
 
 arr3 = [
 	1, 2, 3,
 ]
-assert arr3.count == 3
+assert arr3.count() == 3
 
 arr4 = arr3
-assert arr4.count == 3
+assert arr4.count() == 3
 
 arr = []
-assert arr.count == 0
+assert arr.count() == 0
 
 arr.push( 4 )
-assert arr.count == 1
+assert arr.count() == 1
 
 arr.push( 6 )
-assert arr.count == 2
+assert arr.count() == 2
 
 arr.pop( 0 )
-assert arr.count == 1
+assert arr.count() == 1

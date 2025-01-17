@@ -337,12 +337,10 @@ Value Interpreter::run( Node *node )
 			}
 			else if ( call.type == ValueType::InbuiltFunc )
 			{
-				// fff
-				// TODO : pass itself first, as self, if there is a self
-				//scope_push( nullptr );
-				//Value ret = call.valueInbuiltFunc( this, the self thing, node );
-				//scope_pop();
-				//return ret;
+				scope_push( chainedDotAccess );
+				Value inbuiltReturn = call.valueInbuiltFunc( this, *context.back(), node );
+				scope_pop();
+				return inbuiltReturn;
 			}
 			else
 			{

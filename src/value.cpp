@@ -240,7 +240,7 @@ std::ostream & operator << ( std::ostream &out, const ValueType &valueType )
 	case ValueType::Reference:			return out << "Reference";
 	}
 
-	return out << "Unhandled value ValueType( '" << static_cast<i32>( valueType ) << "' )";
+	return out << "Unhandled value '<<' ValueType( '" << static_cast<i32>( valueType ) << "' )";
 }
 
 bool operator == ( const Value &lhs, const Value &rhs )
@@ -261,7 +261,7 @@ bool operator == ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return l.valueString == r.valueString;
 	}
 
-	std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+	std::cerr << "Unhandled value '==' types( " << l.type << ", " << r.type << " )" << std::endl;
 	exit( RESULT_CODE_VALUE_UNDEFINED_COMPARITOR );
 }
 
@@ -288,7 +288,7 @@ Value operator - ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) - std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
 	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
@@ -311,7 +311,7 @@ Value & operator -= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) - r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) - std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+		std::cerr << "Unhandled value '-=' types( " << l.type << ", " << r.type << " )" << std::endl;
 		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 	}
 
@@ -336,7 +336,7 @@ Value operator + ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) + std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+	std::cerr << "Unhandled value '+' types( " << l.type << ", " << r.type << " )" << std::endl;
 	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
@@ -359,7 +359,7 @@ Value & operator += ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) + r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) + std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+		std::cerr << "Unhandled value '+=' types( " << l.type << ", " << r.type << " )" << std::endl;
 		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 	}
 
@@ -384,7 +384,7 @@ Value operator / ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) / std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+	std::cerr << "Unhandled value '/' types( " << l.type << ", " << r.type << " )" << std::endl;
 	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
@@ -407,7 +407,7 @@ Value & operator /= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) / r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) / std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+		std::cerr << "Unhandled value '/=' types( " << l.type << ", " << r.type << " )" << std::endl;
 		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 	}
 
@@ -432,7 +432,7 @@ Value operator * ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) * std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+	std::cerr << "Unhandled value '*' types( " << l.type << ", " << r.type << " )" << std::endl;
 	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
@@ -455,7 +455,7 @@ Value & operator *= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) * r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) * std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+		std::cerr << "Unhandled value '*=' types( " << l.type << ", " << r.type << " )" << std::endl;
 		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 	}
 
@@ -480,7 +480,7 @@ Value operator & ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) & std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+	std::cerr << "Unhandled value '&' types( " << l.type << ", " << r.type << " )" << std::endl;
 	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
@@ -503,7 +503,7 @@ Value & operator &= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) & r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) & std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+		std::cerr << "Unhandled value '&=' types( " << l.type << ", " << r.type << " )" << std::endl;
 		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 	}
 
@@ -528,7 +528,7 @@ Value operator | ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) | std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+	std::cerr << "Unhandled value '|' types( " << l.type << ", " << r.type << " )" << std::endl;
 	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
@@ -551,7 +551,7 @@ Value & operator |= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) | r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) | std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+		std::cerr << "Unhandled value '|=' types( " << l.type << ", " << r.type << " )" << std::endl;
 		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 	}
 
@@ -576,7 +576,7 @@ Value operator ^ ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) ^ std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+	std::cerr << "Unhandled value '^' types( " << l.type << ", " << r.type << " )" << std::endl;
 	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
@@ -599,7 +599,7 @@ Value & operator ^= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) ^ r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) ^ std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+		std::cerr << "Unhandled value '^=' types( " << l.type << ", " << r.type << " )" << std::endl;
 		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 	}
 
@@ -624,7 +624,7 @@ Value operator % ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) % std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+	std::cerr << "Unhandled value '%' types( " << l.type << ", " << r.type << " )" << std::endl;
 	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 }
 
@@ -647,7 +647,7 @@ Value & operator %= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) % r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) % std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value types( " << l.type << ", " << r.type << " )" << std::endl;
+		std::cerr << "Unhandled value '%=' types( " << l.type << ", " << r.type << " )" << std::endl;
 		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
 	}
 
