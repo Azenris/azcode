@@ -162,15 +162,21 @@ Value Interpreter::run( Node *node )
 		{
 			Value lwo( ValueType::Struct );
 			// add some inbuilt functions
+			lwo.map[ "parent" ] = nullptr;
 			lwo.map[ "count" ] = BuiltInNode_Struct_Count;
 			// provided initialisation data
 			for ( auto child : node->children )
 			{
 				switch ( child->type )
 				{
-				case NodeID::CreateStruct:	lwo.map[ child->left->value.valueString ] = run( child );			break;
-				case NodeID::DeclFunc:		lwo.map[ child->left->value.valueString ] = child;					break;
-				case NodeID::Assignment:	lwo.map[ child->left->value.valueString ] = run( child->right );	break;
+				case NodeID::DeclFunc:
+					lwo.map[ child->left->value.valueString ] = child;
+					break;
+
+				case NodeID::Assignment:
+					lwo.map[ child->left->value.valueString ] = run( child->right );
+					break;
+
 				default:
 					std::cerr << "[Interpreter] Unexpected struct assignment type \"" << child->type << "\" (Line: " << child->token->line << ")" << std::endl;
 					exit( RESULT_CODE_UNEXPECTED_STRUCT_ASSIGNMENT_TYPE );
@@ -281,6 +287,8 @@ Value Interpreter::run( Node *node )
 
 	case NodeID::FunctionCall:
 		{
+			chainedDotAccess = nullptr;
+
 			Value ret = run( node->left );
 			Value &call = ret.deref();
 
@@ -357,7 +365,9 @@ Value Interpreter::run( Node *node )
 		break;
 
 	case NodeID::Return:
-		return run( node->left );
+		if ( node->left )
+			return run( node->left );
+		return node->value;
 
 	case NodeID::Print:
 		{
@@ -425,15 +435,15 @@ Value *Interpreter::chain_access( Node *node, Value *value )
 	if ( value->type == ValueType::Undefined )
 		return nullptr;
 
-	chainedDotAccess = nullptr;
-
 	const char *from = node->value.valueString.c_str();
 
 	for ( auto &child : node->children )
 	{
-		auto subIter = value->map.find( child->value.valueString );
+		Value &l = value->deref();
 
-		if ( subIter == value->map.end() )
+		auto subIter = l.map.find( child->value.valueString );
+
+		if ( subIter == l.map.end() )
 		{
 			std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". (Line: " << child->token->line << ")" << std::endl;
 			exit( RESULT_CODE_VARIABLE_UNKNOWN );
@@ -539,10 +549,6 @@ Value &Interpreter::get_or_create_value( Node *node )
 	}
 	else
 	{
-	
-		// TODO fff it probably gets made here ? isntead of beinf in the context ? if there is a context
-		// yep a, and b get here too
-	
 		std::vector<Value*> &values = data[ node->value.valueString ];
 
 		// Check if its a local variable, will use the current scope
@@ -571,12 +577,14 @@ Value &Interpreter::get_or_create_value( Node *node )
 
 	if ( value )
 	{
+		Value *lastValue = value;
 		for ( auto &child : node->children )
 		{
-			value = &value->map[ child->value.valueString ];
+			value = &value->deref().map[ child->value.valueString ];
 			if ( value->type == ValueType::Undefined )
 				*value = Value( ValueType::Struct );
 			value->scope = -4;
+			lastValue = value;
 		}
 	}
 

@@ -122,10 +122,12 @@ struct Value
 	}
 
 	Value & operator = ( const Value &rhs );
+	Value operator [] ( i64 index );
+
+	void update_parent( Value *parent );
 	bool get_as_bool( Node *node );
 	i64 get_as_i64( Node *node );
 	std::string get_as_string( Node *node );
-	Value operator [] ( i64 index );
 	i64 count() const;
 	void clear();
 	Value &deref();

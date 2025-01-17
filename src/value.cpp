@@ -25,7 +25,44 @@ Value & Value::operator = ( const Value &rhs )
 	l.arr = r.arr;
 	l.map = r.map;
 
+	for ( auto &entry : l.map )
+		entry.second.update_parent( &l );
+
 	return *this;
+}
+
+Value Value::operator [] ( i64 index )
+{
+	if ( type == ValueType::Reference )
+		return (*this->valueRef)[ index ];
+
+	if ( type != ValueType::Arr )
+	{
+		std::cerr << "Attempting to access subscript of value that isn't an array. ( " << *this << " )." << std::endl;
+		exit( RESULT_CODE_VALUE_SUBSCRIPT_OF_NON_ARRAY );
+	}
+
+	if ( index < 0 || index >= static_cast<i64>( arr.size() ) )
+	{
+		std::cerr << "Attempting to access subscript of value out of bounds[ " << index << " ]. ( " << *this << " )." << std::endl;
+		exit( RESULT_CODE_VALUE_SUBSCRIPT_OUT_OF_RANGE );
+	}
+
+	return arr[ index ];
+}
+
+void Value::update_parent( Value *parent )
+{
+	if ( type != ValueType::Struct )
+		return;
+
+	Value &value = map[ "parent" ];
+	value.type = ValueType::Reference;
+	value.scope = -5;
+	value.valueRef = parent;
+
+	for ( auto &entry : map )
+		entry.second.update_parent( this );
 }
 
 bool Value::get_as_bool( Node *node )
@@ -92,26 +129,6 @@ std::string Value::get_as_string( Node *node )
 	exit( RESULT_CODE_VALUE_CANNOT_CONVERT );
 }
 
-Value Value::operator [] ( i64 index )
-{
-	if ( type == ValueType::Reference )
-		return (*this->valueRef)[ index ];
-
-	if ( type != ValueType::Arr )
-	{
-		std::cerr << "Attempting to access subscript of value that isn't an array. ( " << *this << " )." << std::endl;
-		exit( RESULT_CODE_VALUE_SUBSCRIPT_OF_NON_ARRAY );
-	}
-
-	if ( index < 0 || index >= static_cast<i64>( arr.size() ) )
-	{
-		std::cerr << "Attempting to access subscript of value out of bounds[ " << index << " ]. ( " << *this << " )." << std::endl;
-		exit( RESULT_CODE_VALUE_SUBSCRIPT_OUT_OF_RANGE );
-	}
-
-	return arr[ index ];
-}
-
 i64 Value::count() const
 {
 	switch ( type )
@@ -166,16 +183,23 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 		out << "{ ";
 		if ( !value.map.empty() )
 		{
+			auto entry = []( std::ostream &o, auto iter, bool &f )
+			{
+				if ( iter->first != "parent" )
+				{
+					if ( f )
+						o << iter->first << ":" << iter->second;
+					else
+						o << ", " << iter->first << ":" << iter->second;
+					f = false;
+				}
+			};
+
+			bool first = true;
 			auto iter = value.map.begin();
-			if ( iter->first == "self" )
-				out << "self";
-			else
-				out << iter->first << ":" << iter->second;
+			entry( out, iter, first );
 			for ( ++iter; iter != value.map.end(); ++iter )
-				if ( iter->first == "self" )
-					out << ", " << "self";
-				else
-					out << ", " << iter->first << ":" << iter->second;
+				entry( out, iter, first );
 		}
 		return out << " }";
 

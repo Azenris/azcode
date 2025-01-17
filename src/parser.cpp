@@ -48,7 +48,7 @@ static void add_return_if_needed( Parser *parser, Node *node )
 	if ( node->children.empty() || node->children.back()->token->id != TokenID::Keyword || node->children.back()->value.keywordID != KeywordID::Return )
 	{
 		// Implicit return will return the value 0
-		Node *returnNode = new_node( parser, NodeID::Number, nullptr );
+		Node *returnNode = new_node( parser, NodeID::Return, nullptr );
 		returnNode->value = static_cast<i32>( 0 );
 		node->children.push_back( returnNode );
 	}
