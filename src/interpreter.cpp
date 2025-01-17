@@ -384,7 +384,10 @@ Value Interpreter::run( Node *node )
 		{
 			if ( node->children.empty() )
 			{
-				std::cout << run( node->left ) << std::endl;
+				if ( node->left )
+					std::cout << run( node->left ) << std::endl;
+				else
+					std::cout << std::endl;
 			}
 			else
 			{

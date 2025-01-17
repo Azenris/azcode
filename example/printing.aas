@@ -10,8 +10,18 @@ temp2 = "Meow"
 println "temp is %0", temp
 print "-"
 print "-"
+println
 print "-"
 print "-"
 println ""
 println temp2
 
+
+temp3 = 6
+
+print( "--" )
+println
+print "--"
+println( "temp3 %0", temp )
+
+println "temp3 %0", temp

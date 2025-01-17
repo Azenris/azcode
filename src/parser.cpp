@@ -309,12 +309,20 @@ static Node *parser_parse_keyword( Parser *parser )
 			Node *node = new_node( parser, NodeID::Print, token );
 			if ( parser->token->id != TokenID::NewLine )
 			{
+				bool paren = ( parser->token->id == TokenID::ParenOpen );
+				if ( paren )
+					parser_consume( parser, TokenID::ParenOpen );
+				parser_ignore( parser, TokenID::NewLine );
 				node->left = parser_parse( parser );
 				while ( parser->token->id == TokenID::Comma )
 				{
 					parser_consume( parser, TokenID::Comma );
 					node->children.push_back( parser_parse( parser ) );
+					parser_ignore( parser, TokenID::NewLine );
 				}
+				parser_ignore( parser, TokenID::NewLine );
+				if ( paren )
+					parser_consume( parser, TokenID::ParenClose );
 				return node;
 			}
 		}
@@ -325,12 +333,25 @@ static Node *parser_parse_keyword( Parser *parser )
 			Node *node = new_node( parser, NodeID::Println, token );
 			if ( parser->token->id != TokenID::NewLine )
 			{
+				bool paren = ( parser->token->id == TokenID::ParenOpen );
+				if ( paren )
+					parser_consume( parser, TokenID::ParenOpen );
+				parser_ignore( parser, TokenID::NewLine );
 				node->left = parser_parse( parser );
 				while ( parser->token->id == TokenID::Comma )
 				{
 					parser_consume( parser, TokenID::Comma );
 					node->children.push_back( parser_parse( parser ) );
+					parser_ignore( parser, TokenID::NewLine );
 				}
+				parser_ignore( parser, TokenID::NewLine );
+				if ( paren )
+					parser_consume( parser, TokenID::ParenClose );
+				return node;
+			}
+			else
+			{
+				parser_consume( parser, TokenID::NewLine );
 				return node;
 			}
 		}
