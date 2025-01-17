@@ -74,7 +74,7 @@ enum class NodeID
 	CreateIdentifier,
 	StringLiteral,
 	Number,
-	StructAssignment,
+	CreateStruct,
 	CreateArray,
 	ArrayAccess,
 	Assignment,

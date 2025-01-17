@@ -361,16 +361,16 @@ static Node *parser_parse_keyword( Parser *parser )
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
 }
 
-static Node *parser_parse_struct_decl( Parser *parser, Node *node )
+static Node *parser_parse_struct_decl( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::BraceOpen );
-	Node *structAssign = new_node( parser, NodeID::StructAssignment, token );
-	structAssign->left = node;
+	Node *node = new_node( parser, NodeID::CreateStruct, token );
+
 	parser_ignore( parser, TokenID::NewLine );
+
 	if ( parser->token->id != TokenID::BraceClose )
 	{
-		parser_ignore( parser, TokenID::NewLine );
-		structAssign->children.push_back( parser_parse_identifier_assign( parser ) );
+		node->children.push_back( parser_parse_identifier_assign( parser ) );
 		parser_ignore( parser, TokenID::NewLine );
 
 		while ( parser->token->id == TokenID::Comma )
@@ -379,12 +379,14 @@ static Node *parser_parse_struct_decl( Parser *parser, Node *node )
 			parser_ignore( parser, TokenID::NewLine );
 			if ( parser->token->id == TokenID::BraceClose )
 				break;
-			structAssign->children.push_back( parser_parse_identifier_assign( parser ) );
+			node->children.push_back( parser_parse_identifier_assign( parser ) );
 			parser_ignore( parser, TokenID::NewLine );
 		}
 	}
+
 	parser_consume( parser, TokenID::BraceClose );
-	return structAssign;
+
+	return node;
 }
 
 static Node *parser_parse_identifier_assign( Parser *parser )
@@ -397,12 +399,13 @@ static Node *parser_parse_identifier_assign( Parser *parser )
 	case TokenID::Assign:
 		{
 			token = parser_consume( parser, TokenID::Assign );
-			parser_ignore( parser, TokenID::NewLine );
-			if ( parser->token->id == TokenID::BraceOpen )
-				return parser_parse_struct_decl( parser, node );
 			Node *assignment = new_node( parser, NodeID::Assignment, token );
+			parser_ignore( parser, TokenID::NewLine );
 			assignment->left = node;
-			assignment->right = parser_parse( parser );
+			if ( parser->token->id == TokenID::BraceOpen )
+				assignment->right = parser_parse_struct_decl( parser );
+			else
+				assignment->right = parser_parse( parser );
 			return assignment;
 		}
 		break;
@@ -472,12 +475,13 @@ static Node *parser_parse_identifier_use( Parser *parser, Node *node )
 			if ( node->type == NodeID::Identifier )
 				node->type = NodeID::CreateIdentifier;
 			Token *token = parser_consume( parser, TokenID::Assign );
-			parser_ignore( parser, TokenID::NewLine );
-			if ( parser->token->id == TokenID::BraceOpen )
-				return parser_parse_struct_decl( parser, node );
 			Node *assignment = new_node( parser, NodeID::Assignment, token );
+			parser_ignore( parser, TokenID::NewLine );
 			assignment->left = node;
-			assignment->right = parser_parse( parser );
+			if ( parser->token->id == TokenID::BraceOpen )
+				assignment->right = parser_parse_struct_decl( parser );
+			else
+				assignment->right = parser_parse( parser );
 			return assignment;
 		}
 		break;

@@ -41,8 +41,8 @@ constexpr NodeType NodeTypes[] =
 		.name = "Number",
 	},
 	{
-		.id = NodeID::StructAssignment,
-		.name = "StructAssignment",
+		.id = NodeID::CreateStruct,
+		.name = "CreateStruct",
 	},
 	{
 		.id = NodeID::CreateArray,

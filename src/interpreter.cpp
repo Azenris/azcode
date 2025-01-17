@@ -158,37 +158,25 @@ Value Interpreter::run( Node *node )
 	case NodeID::Number:
 		return node->value;
 
-	case NodeID::StructAssignment:
+	case NodeID::CreateStruct:
 		{
-			Value &lwo = get_or_create_value( node->left );
-			lwo.clear();
-			lwo.type = ValueType::Struct;
+			Value lwo( ValueType::Struct );
 			// add some inbuilt functions
-			lwo.map[ "self" ] = &lwo;
 			lwo.map[ "count" ] = BuiltInNode_Struct_Count;
 			// provided initialisation data
 			for ( auto child : node->children )
 			{
 				switch ( child->type )
 				{
-				case NodeID::StructAssignment:
-					lwo.map[ child->left->value.valueString ] = run( child );
-					break;
-
-				case NodeID::DeclFunc:
-					lwo.map[ child->left->value.valueString ] = child;
-					break;
-
-				case NodeID::Assignment:
-					lwo.map[ child->left->value.valueString ] = run( child->right );
-					break;
-
+				case NodeID::CreateStruct:	lwo.map[ child->left->value.valueString ] = run( child );			break;
+				case NodeID::DeclFunc:		lwo.map[ child->left->value.valueString ] = child;					break;
+				case NodeID::Assignment:	lwo.map[ child->left->value.valueString ] = run( child->right );	break;
 				default:
 					std::cerr << "[Interpreter] Unexpected struct assignment type \"" << child->type << "\" (Line: " << child->token->line << ")" << std::endl;
 					exit( RESULT_CODE_UNEXPECTED_STRUCT_ASSIGNMENT_TYPE );
 				}
 			}
-			return &lwo;
+			return lwo;
 		}
 
 	case NodeID::CreateArray:
@@ -319,7 +307,6 @@ Value Interpreter::run( Node *node )
 						Node *argNode = funcNode->right->children[ argIdx ];
 						get_or_create_value( data[ argNode->value.valueString ], funcScope, argNode ) = run( node->children[ argIdx ] );
 					}
-
 
 					// -- process the codeblock of the function --
 					for ( auto child : funcNode->children )
@@ -548,36 +535,38 @@ Value &Interpreter::get_or_create_value( Node *node )
 
 	if ( node->value.valueString == "self" )
 	{
-		Value *chainedValue = chain_access( node, context.back() );
-		if ( chainedValue )
-			return *chainedValue;
-		std::cerr << "[Interpreter] Variable unknown \"self\" (Line: " << node->token->line << ")" << std::endl;
-		exit( RESULT_CODE_VARIABLE_UNKNOWN );
-	}
-
-	std::vector<Value*> &values = data[ node->value.valueString ];
-
-	// Check if its a local variable, will use the current scope
-	if ( node->scope == -1 )
-	{
-		value = &get_or_create_value( values, scope, node );
+		value = context.back();
 	}
 	else
 	{
-		bool found = false;
+	
+		// TODO fff it probably gets made here ? isntead of beinf in the context ? if there is a context
+		// yep a, and b get here too
+	
+		std::vector<Value*> &values = data[ node->value.valueString ];
 
-		for ( i32 scopeIdx = std::min( scope, static_cast<i32>( values.size() ) - 1 ); scopeIdx >= 0; --scopeIdx )
+		// Check if its a local variable, will use the current scope
+		if ( node->scope == -1 )
 		{
-			if ( values[ scopeIdx ] )
-			{
-				value = values[ scopeIdx ];
-				found = true;
-				break;
-			}
+			value = &get_or_create_value( values, scope, node );
 		}
+		else
+		{
+			bool found = false;
 
-		if ( !found )
-			value = &get_or_create_value( values, 0, node );
+			for ( i32 scopeIdx = std::min( scope, static_cast<i32>( values.size() ) - 1 ); scopeIdx >= 0; --scopeIdx )
+			{
+				if ( values[ scopeIdx ] )
+				{
+					value = values[ scopeIdx ];
+					found = true;
+					break;
+				}
+			}
+
+			if ( !found )
+				value = &get_or_create_value( values, 0, node );
+		}
 	}
 
 	if ( value )
@@ -585,6 +574,8 @@ Value &Interpreter::get_or_create_value( Node *node )
 		for ( auto &child : node->children )
 		{
 			value = &value->map[ child->value.valueString ];
+			if ( value->type == ValueType::Undefined )
+				*value = Value( ValueType::Struct );
 			value->scope = -4;
 		}
 	}
