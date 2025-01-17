@@ -167,9 +167,15 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 		if ( !value.map.empty() )
 		{
 			auto iter = value.map.begin();
-			out << iter->first << ":" << iter->second;
+			if ( iter->first == "self" )
+				out << "self";
+			else
+				out << iter->first << ":" << iter->second;
 			for ( ++iter; iter != value.map.end(); ++iter )
-				out << ", " << iter->first << ":" << iter->second;
+				if ( iter->first == "self" )
+					out << ", " << "self";
+				else
+					out << ", " << iter->first << ":" << iter->second;
 		}
 		return out << " }";
 
@@ -185,7 +191,7 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 
 	case ValueType::TokenID:			return out << value.valueString;
 	case ValueType::KeywordID:			return out << value.valueString;
-	case ValueType::Node:				return out << "Node[" << value.valueNode << "]";
+	case ValueType::Node:				return out << "Function";
 	case ValueType::InbuiltFunc:		return out << "InbuiltFunc";
 	case ValueType::Reference:			return out << *value.valueRef;
 	}

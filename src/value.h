@@ -108,7 +108,7 @@ struct Value
 	}
 
 	Value( InBuiltFunc inbuiltFunc )
-		: type( ValueType::InbuiltFunc )
+		: type( inbuiltFunc ? ValueType::InbuiltFunc : ValueType::Undefined )
 		, scope( -2 )
 		, valueInbuiltFunc( inbuiltFunc )
 	{

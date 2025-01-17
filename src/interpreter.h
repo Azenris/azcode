@@ -13,14 +13,16 @@ struct Interpreter
 	ValueMap data;
 	std::vector<std::vector<std::string>> scopeWatch;
 	int scope;
+	Value *chainedDotAccess;
+	std::vector<Value *> context;
 
 	Value run( Node *node );
 	Value *chain_access( Node *node, Value *value );
 	Value *get_value_if_exists( Node *node );
-	Value &get_or_create_value( std::vector<Value*> &values, i32 valueScope, Node *node );
 	Value &get_value( Node *node );
+	Value &get_or_create_value( std::vector<Value*> &values, i32 valueScope, Node *node );
 	Value &get_or_create_value( Node *node );
 	void cleanup();
-	void scope_push();
+	void scope_push( Value *newContext = nullptr );
 	void scope_pop();
 };

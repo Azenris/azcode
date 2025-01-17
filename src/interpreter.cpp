@@ -164,6 +164,7 @@ Value Interpreter::run( Node *node )
 			lwo.clear();
 			lwo.type = ValueType::Struct;
 			// add some inbuilt functions
+			lwo.map[ "self" ] = &lwo;
 			lwo.map[ "count" ] = BuiltInNode_Struct_Count;
 			// provided initialisation data
 			for ( auto child : node->children )
@@ -309,7 +310,7 @@ Value Interpreter::run( Node *node )
 
 					// -- setup arguments --
 
-					scope_push();
+					scope_push( chainedDotAccess );
 
 					int funcScope = scope;
 
@@ -319,10 +320,12 @@ Value Interpreter::run( Node *node )
 						get_or_create_value( data[ argNode->value.valueString ], funcScope, argNode ) = run( node->children[ argIdx ] );
 					}
 
+
 					// -- process the codeblock of the function --
 					for ( auto child : funcNode->children )
 					{
 						Value value = run( child );
+
 						if ( child->type == NodeID::Return )
 						{
 							// check if the value will go out of scope with the return
@@ -339,8 +342,12 @@ Value Interpreter::run( Node *node )
 			}
 			else if ( call.type == ValueType::InbuiltFunc )
 			{
-				std::cerr << "NYI else if ( call.type == ValueType::InbuiltFunc )" << std::endl;
-				// TODO fff
+				// fff
+				// TODO : pass itself first, as self, if there is a self
+				//scope_push( nullptr );
+				//Value ret = call.valueInbuiltFunc( this, the self thing, node );
+				//scope_pop();
+				//return ret;
 			}
 			else
 			{
@@ -428,25 +435,30 @@ Value Interpreter::run( Node *node )
 
 Value *Interpreter::chain_access( Node *node, Value *value )
 {
-	if ( value->type != ValueType::Undefined )
+	if ( value->type == ValueType::Undefined )
+		return nullptr;
+
+	chainedDotAccess = nullptr;
+
+	const char *from = node->value.valueString.c_str();
+
+	for ( auto &child : node->children )
 	{
-		const char *from = node->value.valueString.c_str();
-		for ( auto &child : node->children )
+		auto subIter = value->map.find( child->value.valueString );
+
+		if ( subIter == value->map.end() )
 		{
-			auto subIter = value->map.find( child->value.valueString );
-			if ( subIter == value->map.end() )
-			{
-				std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". (Line: " << child->token->line << ")" << std::endl;
-				exit( RESULT_CODE_VARIABLE_UNKNOWN );
-			}
-			value = &subIter->second;
-			from = child->value.valueString.c_str();
-			value->scope = scope;
+			std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". (Line: " << child->token->line << ")" << std::endl;
+			exit( RESULT_CODE_VARIABLE_UNKNOWN );
 		}
-		return value;
+
+		chainedDotAccess = value;
+		value = &subIter->second;
+		from = child->value.valueString.c_str();
+		value->scope = scope;
 	}
 
-	return nullptr;
+	return value;
 }
 
 Value *Interpreter::get_value_if_exists( Node *node )
@@ -477,6 +489,15 @@ Value *Interpreter::get_value_if_exists( Node *node )
 
 Value &Interpreter::get_value( Node *node )
 {
+	if ( node->value.valueString == "self" )
+	{
+		Value *chainedValue = chain_access( node, context.back() );
+		if ( chainedValue )
+			return *chainedValue;
+		std::cerr << "[Interpreter] Variable unknown \"self\" (Line: " << node->token->line << ")" << std::endl;
+		exit( RESULT_CODE_VARIABLE_UNKNOWN );
+	}
+
 	if ( node->left )
 	{
 		Value value = run( node->left );
@@ -525,6 +546,15 @@ Value &Interpreter::get_or_create_value( Node *node )
 {
 	Value *value = nullptr;
 
+	if ( node->value.valueString == "self" )
+	{
+		Value *chainedValue = chain_access( node, context.back() );
+		if ( chainedValue )
+			return *chainedValue;
+		std::cerr << "[Interpreter] Variable unknown \"self\" (Line: " << node->token->line << ")" << std::endl;
+		exit( RESULT_CODE_VARIABLE_UNKNOWN );
+	}
+
 	std::vector<Value*> &values = data[ node->value.valueString ];
 
 	// Check if its a local variable, will use the current scope
@@ -567,14 +597,17 @@ void Interpreter::cleanup()
 	data.clear();
 }
 
-void Interpreter::scope_push()
+void Interpreter::scope_push( Value *newContext )
 {
+	context.push_back( newContext );
 	scope += 1;
 	scopeWatch.emplace_back();
 }
 
 void Interpreter::scope_pop()
 {
+	context.pop_back();
+
 	for ( auto &entry : scopeWatch.back() )
 	{
 		std::vector<Value*> &values = data[ entry ];

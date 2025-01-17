@@ -235,7 +235,7 @@ static Node *parser_parse_keyword( Parser *parser )
 {
 	Token *token = parser_consume( parser, TokenID::Keyword );
 
-	switch ( static_cast<KeywordID>( token->value.valueI32 ) )
+	switch ( token->value.keywordID )
 	{
 	case KeywordID::Return:
 		{
@@ -281,10 +281,10 @@ static Node *parser_parse_keyword( Parser *parser )
 				// if
 				parser_parse_codeblock( parser, node );
 				parser_ignore( parser, TokenID::NewLine );
-				if ( parser->token->id == TokenID::Keyword && static_cast<KeywordID>( parser->token->value.valueI32 ) == KeywordID::Else )
+				if ( parser->token->id == TokenID::Keyword && parser->token->value.keywordID == KeywordID::Else )
 				{
 					parser_consume( parser, TokenID::Keyword );
-					if ( parser->token->id == TokenID::Keyword && static_cast<KeywordID>( parser->token->value.valueI32 ) == KeywordID::If )
+					if ( parser->token->id == TokenID::Keyword && parser->token->value.keywordID == KeywordID::If )
 					{
 						// else if
 						token = parser_consume( parser, TokenID::Keyword );
