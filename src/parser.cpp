@@ -69,6 +69,10 @@ static i32 get_operator_precedence( TokenID tokenID )
 	case TokenID::Percent: return 0;
 	case TokenID::DoubleAssign: return 5;
 	case TokenID::ExclamationAssign: return 5;
+	case TokenID::GreaterThan: return 5;
+	case TokenID::GreaterOrEqual: return 5;
+	case TokenID::LesserThan: return 5;
+	case TokenID::LesserOrEqual: return 5;
 	}
 	std::cerr << "[Parser] Unexpected operator precendence token( " << tokenID << " )." << std::endl;
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
@@ -112,6 +116,10 @@ static Node *parser_parse_operator( Parser *parser, Node *node )
 	case TokenID::Percent:
 	case TokenID::DoubleAssign:
 	case TokenID::ExclamationAssign:
+	case TokenID::GreaterThan:
+	case TokenID::GreaterOrEqual:
+	case TokenID::LesserThan:
+	case TokenID::LesserOrEqual:
 		{
 			Token *token = parser_consume( parser, parser->token->id );
 			Node *op = new_node( parser, NodeID::Operation, token );

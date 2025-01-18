@@ -275,6 +275,10 @@ Value Interpreter::run( Node *node )
 		case TokenID::Percent:				return run( node->left ) % run( node->right );
 		case TokenID::DoubleAssign:			return run( node->left ) == run( node->right );
 		case TokenID::ExclamationAssign:	return run( node->left ) != run( node->right );
+		case TokenID::GreaterThan:			return run( node->left ) > run( node->right );
+		case TokenID::GreaterOrEqual:		return run( node->left ) >= run( node->right );
+		case TokenID::LesserThan:			return run( node->left ) < run( node->right );
+		case TokenID::LesserOrEqual:		return run( node->left ) <= run( node->right );
 		}
 		break;
 
