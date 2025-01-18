@@ -124,6 +124,10 @@ constexpr NodeType NodeTypes[] =
 		.id = NodeID::Break,
 		.name = "Break",
 	},
+	{
+		.id = NodeID::Exit,
+		.name = "Exit",
+	},
 };
 
 std::ostream & operator << ( std::ostream &out, const NodeID &nodeID );

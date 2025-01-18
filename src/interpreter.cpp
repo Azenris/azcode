@@ -742,6 +742,9 @@ Value Interpreter::run( Node *node )
 			}
 		}
 		break;
+
+	case NodeID::Exit:
+		exit( static_cast<i32>( run( node->left ).get_as_i64( node->left ) ) );
 	}
 
 	return Value();

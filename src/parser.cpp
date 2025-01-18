@@ -437,6 +437,18 @@ static Node *parser_parse_keyword( Parser *parser )
 
 	case KeywordID::Continue:
 		return new_node( parser, NodeID::Continue, token );
+
+	case KeywordID::Exit:
+		{
+			Node *node = new_node( parser, NodeID::Exit, token );
+			bool paren = ( parser->token->id == TokenID::ParenOpen );
+			if ( paren )
+				parser_consume( parser, TokenID::ParenOpen );
+			node->left = parser_parse( parser );
+			if ( paren )
+				parser_consume( parser, TokenID::ParenClose );
+			return node;
+		}
 	}
 
 	std::cerr << "[Parser] Unexpected keyword token( " << *parser->token << " )." << std::endl;

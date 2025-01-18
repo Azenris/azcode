@@ -69,6 +69,7 @@ enum class KeywordID
 	While,
 	Break,
 	Continue,
+	Exit,
 };
 
 enum class NodeID
@@ -100,6 +101,7 @@ enum class NodeID
 	While,
 	Continue,
 	Break,
+	Exit,
 };
 
 enum class ValueType

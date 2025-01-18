@@ -28,6 +28,7 @@ static std::unordered_map<std::string, KeywordID> KeywordsMap =
 	{ "while", KeywordID::While },
 	{ "break", KeywordID::Break },
 	{ "continue", KeywordID::Continue },
+	{ "exit", KeywordID::Exit },
 };
 
 const KeywordType *get_keyword( const char *keyword )
