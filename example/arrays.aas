@@ -57,3 +57,10 @@ assert arr2[ 5 ] == 4
 assert arr2[ 6 ] == 3
 assert arr2[ 7 ] == 2
 assert arr2[ 8 ] == 1
+
+t1 = 3
+t2 = 7
+t3 = 9
+
+add3 = [ t1, t2, t3, 11 ]
+assert add3.count() == 4

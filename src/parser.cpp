@@ -11,6 +11,7 @@ std::ostream & operator << ( std::ostream &out, const NodeID &nodeID )
 // Forward Decl
 static Node *parser_parse( Parser *parser );
 static Node *parser_parse_identifier_assign( Parser *parser );
+static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nullptr );
 
 static Node *new_node( Parser *parser, NodeID type, Token *token )
 {
@@ -376,6 +377,36 @@ static Node *parser_parse_keyword( Parser *parser )
 			return node;
 		}
 		break;
+
+	case KeywordID::For:
+		{
+			Node *node = new_node( parser, NodeID::ForNumberRange, token );
+			parser_consume( parser, TokenID::ParenOpen );
+
+			node->left = parser_parse_identifier( parser );
+
+			parser_consume( parser, TokenID::Colon );
+
+			Node *start = parser_parse( parser );
+			parser_consume( parser, TokenID::DoublePeriod );
+			Node *end = parser_parse( parser );
+
+			node->right = start;
+			start->right = end;
+
+			parser_consume( parser, TokenID::ParenClose );
+
+			parser_parse_codeblock( parser, node );
+
+			return node;
+		}
+		break;
+
+	case KeywordID::While:
+		{
+			// TODO fff
+		}
+		break;
 	}
 
 	std::cerr << "[Parser] Unexpected keyword token( " << *parser->token << " )." << std::endl;
@@ -566,7 +597,7 @@ static Node *parser_parse_identifier_use( Parser *parser, Node *node )
 	return node;
 }
 
-static Node *parser_parse_identifier( Parser *parser, Node **identiferNode = nullptr )
+static Node *parser_parse_identifier( Parser *parser, Node **identiferNode )
 {
 	Token *token = parser_consume( parser, TokenID::Identifier );
 	Node *node = new_node( parser, NodeID::Identifier, token );

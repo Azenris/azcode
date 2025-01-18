@@ -53,6 +53,14 @@ constexpr KeywordType Keywords[] =
 		.id = KeywordID::Assert,
 		.name = "Assert",
 	},
+	{
+		.id = KeywordID::For,
+		.name = "For",
+	},
+	{
+		.id = KeywordID::While,
+		.name = "While",
+	},
 };
 
 struct TokenType
@@ -260,6 +268,11 @@ constexpr TokenType TokenTypes[] =
 		.id = TokenID::Period,
 		.name = "Period",
 		.symbol = ".",
+	},
+	{
+		.id = TokenID::DoublePeriod,
+		.name = "DoublePeriod",
+		.symbol = "..",
 	},
 	{
 		.id = TokenID::Comma,

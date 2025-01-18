@@ -272,6 +272,11 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			return { .id = TokenID::SquareClose, .line = lexer->line };
 
 		case '.':
+			if ( *( lexer->txt + 1 ) == '.' )
+			{
+				lexer->txt += 2;
+				return { .id = TokenID::DoublePeriod, .line = lexer->line };
+			}
 			lexer->txt += 1;
 			return { .id = TokenID::Period, .line = lexer->line };
 

@@ -1,49 +1,75 @@
 
-/*this is a comment block!
-	false, true
-	switch, case, fallthrough
-	continue
-	do, while, for
-	if, else
-	goto
-	nodiscard
-	return
-	exit
-	nullptr
-	undefined
-	sizeof, typeof
-	static_assert, static_cast
-	using
-	include
+/*
+	TODO:
+	  while, for
+	  exit
+	  include
+	  switch, case, fallthrough
+	  continue
 
-/* this is a block inside another block */
+	Inbuilt Functions Todo
+		Arrays: find, remove, remove_value
+		Object: insert, find, remove, remove_value, exists
+*/
 
-nothing to see here*/
+for ( idx : 1 .. 50 ) {
+	if ( ( idx & 1 ) == 0 ) {
+		println "%0 is even", idx
+	} else {
+		println "%0 is odd", idx
+	}
+}
 
-//this is a comment line!
+/*
+arr = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
 
-//test1 = ( ( 5 + 7 ) + 2 )
-//test1 = 1 + 2 - 3   ordering b o d m a s
-test2 = 5 * 1 + 1
-//test2 = ( 1 + 2 ) + 3   // broke
-//test3 = 5 + 1 / 3
-//test4 = "this is a quote in a string \"to be or not to be\". See!"
+// Loop all with the value in idx
+for ( idx : arr ) {
+	println idx
+}
 
-return test2
+// Loop from index 2 to index 4 ( 2, 3, 4 )
+for ( idx : arr, 2 .. 4 ) {
+	println idx
+}
 
-//print(test1)
+// Loop from index 0, for 4 entries ( 2, 3, 4, 5 )
+for ( idx : arr, 2 : 4 ) {
+	println idx
+}
 
+obj = {
+	this = 4,
+	that = 3,
+	f := () {
+		println "Value: %0", self.this
+	}
+}
 
-//print("v = {}", test1)
+// Loop all entries of a map
+for ( o : obj ) {
+	println "Key: %0, Value: %1", o.key, o.value
+}
+*/
 
-//someMap.key = 2
-//someMap[ $5 ] = 4
+// TODO fix - would expect & to have priority ?
+// for ( idx : 1 .. 5 ) {
+	// if ( idx & 1 == 0 ) {
+		// println "%0 is even", idx
+	// } else {
+		// println "%0 is odd", idx
+	// }
+// }
 
-//isAllowed = false
-//thing = ( test + 5 ) - 2
-//answer = test + testTwo
-
-//print "This is the answer: {}", answer
-//print-host "This shows the snswer *2 for the host only... {}", answer * 2
-
-//return answer
+// Random Ideas -------------------------------------------------------
+// Variables Types ?
+// System stuff I/O
+// rm "file.txt"          delete a file
+// rd "this/and/that"     delete a directory recursively and all files inside it
+// mkdir "this/and/that"  make directory path recursively
+// file = "file.txt"      can use a variable
+// data -> file           create & overwrite file
+// data |> file           create | append file
+// fileData = <- file     read whole file
+// fileLine = <| file     read lihe
+// fileLine = <. file     read word

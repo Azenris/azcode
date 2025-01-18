@@ -46,6 +46,7 @@ enum class TokenID
 	SquareOpen,
 	SquareClose,
 	Period,
+	DoublePeriod,
 	Comma,
 	Colon,
 	ColonAssign,
@@ -64,6 +65,8 @@ enum class KeywordID
 	Print,
 	Println,
 	Assert,
+	For,
+	While,
 };
 
 enum class NodeID
@@ -90,6 +93,8 @@ enum class NodeID
 	Print,
 	Println,
 	Assert,
+	ForNumberRange,
+	While,
 };
 
 enum class ValueType

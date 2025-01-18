@@ -104,6 +104,14 @@ constexpr NodeType NodeTypes[] =
 		.id = NodeID::Assert,
 		.name = "Assert",
 	},
+	{
+		.id = NodeID::ForNumberRange,
+		.name = "ForNumberRange",
+	},
+	{
+		.id = NodeID::While,
+		.name = "While",
+	},
 };
 
 std::ostream & operator << ( std::ostream &out, const NodeID &nodeID );

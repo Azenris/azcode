@@ -448,6 +448,56 @@ Value Interpreter::run( Node *node )
 			}
 		}
 		break;
+
+	case NodeID::ForNumberRange:
+		{
+			scope_push();
+
+			Value &v = get_or_create_value( node->left );
+
+			i64 start = run( node->right ).get_as_i64( node->right );
+			i64 end = run( node->right->right ).get_as_i64( node->right->right );
+			i64 dir = ( end - start );
+
+			dir = ( dir < 0 ? -1 : ( dir > 0 ? 1 : 0 ) );
+
+			for ( i64 i = start; true; i += dir )
+			{
+				v = i;
+
+				// -- process the codeblock of the function --
+				for ( auto child : node->children )
+				{
+					// switch ( child->type )
+					// {
+					//case NodeID::Continue:
+					//	break; // TODO fff
+
+					//case NodeID::Break:
+					//	break; // TODO fff
+					// }
+
+					Value value = run( child );
+
+					switch ( child->type )
+					{
+					case NodeID::Return:
+						// check if the value will go out of scope with the return
+						// it will have to pass-by-value
+						if ( value.deref().scope == scope )
+							value.unfold();
+						scope_pop();
+						return value;
+					}
+				}
+
+				if ( i == end )
+					break;
+			}
+
+			scope_pop();
+		}
+		break;
 	}
 
 	return Value();
