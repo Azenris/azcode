@@ -1,8 +1,11 @@
 
+t = 2
+
 println "Message"
 println "Message : %0", 77
 println "Message : %0 %0 %0", 6
 println "Message : %1-%0%%", 6, 9
+println "Message : %0 %2 %1", 4, 0, t
 
 temp = 3
 temp2 = "Meow"
@@ -16,7 +19,6 @@ print "-"
 println ""
 println temp2
 
-
 temp3 = 6
 
 print( "--" )
@@ -25,3 +27,15 @@ print "--"
 println( "temp3 %0", temp )
 
 println "temp3 %0", temp
+
+obj = {
+	a = 1,
+	b = 2,
+	c = 3,
+	f := () {}
+}
+
+println "Obj: %0", obj
+
+arr = [ 1, 2, 3 ]
+println arr

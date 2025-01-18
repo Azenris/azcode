@@ -398,6 +398,25 @@ static Node *parser_parse_keyword( Parser *parser )
 			{
 				node->type = NodeID::ForOfIdentifier;
 				node->right = first;
+
+				if ( parser->token->id == TokenID::Comma )
+				{
+					parser_consume( parser, TokenID::Comma );
+					Node *start = parser_parse( parser );
+					if ( parser->token->id == TokenID::DoublePeriod )
+					{
+						parser_consume( parser, TokenID::DoublePeriod );
+						node->type = NodeID::ForOfIdentifierRange;
+					}
+					else
+					{
+						parser_consume( parser, TokenID::Colon );
+						node->type = NodeID::ForOfIdentifierRangeCount;
+					}
+
+					first->right = start;
+					start->right = parser_parse( parser );
+				}
 			}
 
 			parser_consume( parser, TokenID::ParenClose );

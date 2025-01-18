@@ -9,10 +9,11 @@ SET mypath=%~dp0
 pushd %mypath%\final\debug\
 
 call:run_test arithmetic
+call:run_test arrays
 call:run_test functions
+call:run_test looping
 call:run_test objects
 call:run_test printing
-call:run_test arrays
 
 popd
 exit /b

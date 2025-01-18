@@ -31,6 +31,11 @@ for ( idx : arr, 2 .. 4 ) {
 	println idx
 }
 
+// Loop from index 4 to index 2 ( 4, 3, 2 )
+for ( idx : arr, 4 .. 2 ) {
+	println idx
+}
+
 // Loop from index 0, for 4 entries ( 2, 3, 4, 5 )
 for ( idx : arr, 2 : 4 ) {
 	println idx
@@ -47,4 +52,13 @@ obj = {
 // Loop all entries of a map
 for ( o : obj ) {
 	println "Key: %0, Value: %1", o.key, o.value
+}
+
+// Looping!
+for ( idx : 1 .. 5 ) {
+	if ( ( idx & 1 ) == 0 ) {
+		println "%0 is even", idx
+	} else {
+		println "%0 is odd", idx
+	}
 }

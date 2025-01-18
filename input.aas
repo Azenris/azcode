@@ -1,7 +1,7 @@
 
 /*
 	TODO:
-	  while, for
+	  while
 	  exit
 	  include
 	  switch, case, fallthrough
@@ -10,47 +10,6 @@
 	Inbuilt Functions Todo
 		Arrays: find, remove, remove_value
 		Object: insert, find, remove, remove_value, exists
-*/
-
-arr = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-
-// Loop all with the value in idx
-for ( idx : arr ) {
-	println idx
-}
-
-
-for ( idx : [ 5, 7, 2, 1 ] ) {
-	println idx
-}
-
-obj = {
-	this = 4,
-	that = 3,
-	f := () {
-		println "Value: %0", self.this
-	}
-}
-
-// Loop all entries of a map
-for ( o : obj ) {
-	println "Key: %0, Value: %1", o.key, o.value
-}
-
-/*
-
-// Loop from index 2 to index 4 ( 2, 3, 4 )
-for ( idx : arr, 2 .. 4 ) {
-	println idx
-}
-
-// Loop from index 0, for 4 entries ( 2, 3, 4, 5 )
-for ( idx : arr, 2 : 4 ) {
-	println idx
-}
-
-
-}
 */
 
 // TODO fix - would expect & to have priority ?

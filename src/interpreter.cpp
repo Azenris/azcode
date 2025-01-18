@@ -6,6 +6,38 @@
 
 #include "interpreter.h"
 
+static void for_loop_codeblock( Interpreter *interpreter, Node *node, bool *flagBreak, bool *flagContinue, bool *flagReturn, Value *ret )
+{
+	*flagContinue = false;
+	*flagBreak = false;
+	*flagReturn = false;
+
+	for ( auto child : node->children )
+	{
+		switch ( child->type )
+		{
+		case NodeID::Continue:
+			*flagContinue = false;
+			return;
+
+		case NodeID::Break:
+			*flagBreak = false;
+			return;
+		}
+
+		*ret = interpreter->run( child );
+
+		switch ( child->type )
+		{
+		case NodeID::Return:
+			*flagReturn = true;
+			if ( ret->deref().scope == interpreter->scope )
+				ret->unfold();
+			interpreter->scope_pop();
+		}
+	}
+}
+
 static Value BuiltInNode_Array_Push( Interpreter *interpreter, Value &self, Node *args )
 {
 	Value &l = self.deref();
@@ -461,37 +493,21 @@ Value Interpreter::run( Node *node )
 
 			dir = ( dir < 0 ? -1 : ( dir > 0 ? 1 : 0 ) );
 
+			Value ret;
+			bool flagBreak;
+			bool flagContinue;
+			bool flagReturn;
+
 			for ( i64 i = start; true; i += dir )
 			{
 				v = i;
 
-				for ( auto child : node->children )
-				{
-					// switch ( child->type )
-					// {
-					//case NodeID::Continue:
-					//	break; // TNodeID::ForNumberRangeODO fff
+				for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
-					//case NodeID::Break:
-					//	break; // TODO fff
-					// }
-
-					Value ret = run( child );
-
-					switch ( child->type )
-					{
-					case NodeID::Return:
-						// check if the value will go out of scope with the return
-						// it will have to pass-by-value
-						if ( ret.deref().scope == scope )
-							ret.unfold();
-						scope_pop();
-						return ret;
-					}
-				}
-
-				if ( i == end )
-					break;
+				if ( flagBreak )	break;
+				if ( flagContinue )	continue;
+				if ( flagReturn )	return ret;
+				if ( i == end )		break;
 			}
 
 			scope_pop();
@@ -506,6 +522,11 @@ Value Interpreter::run( Node *node )
 			Value identifier = run( node->right );
 			Value &id = identifier.deref();
 
+			Value ret;
+			bool flagBreak;
+			bool flagContinue;
+			bool flagReturn;
+
 			if ( id.type == ValueType::Arr )
 			{
 				i64 index = 0;
@@ -514,30 +535,11 @@ Value Interpreter::run( Node *node )
 				{
 					v = entry;
 
-					for ( auto child : node->children )
-					{
-						// switch ( child->type )
-						// {
-						//case NodeID::Continue:
-						//	break; // TODO fff
+					for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
-						//case NodeID::Break:
-						//	break; // TODO fff
-						// }
-
-						Value ret = run( child );
-
-						switch ( child->type )
-						{
-						case NodeID::Return:
-							// check if the value will go out of scope with the return
-							// it will have to pass-by-value
-							if ( ret.deref().scope == scope )
-								ret.unfold();
-							scope_pop();
-							return ret;
-						}
-					}
+					if ( flagBreak )	break;
+					if ( flagContinue )	continue;
+					if ( flagReturn )	return ret;
 
 					index += 1;
 				}
@@ -555,32 +557,113 @@ Value Interpreter::run( Node *node )
 					key = entry.first;
 					value = entry.second;
 
-					for ( auto child : node->children )
-					{
-						// switch ( child->type )
-						// {
-						//case NodeID::Continue:
-						//	break; // TODO fff
+					for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
-						//case NodeID::Break:
-						//	break; // TODO fff
-						// }
-
-						Value ret = run( child );
-
-						switch ( child->type )
-						{
-						case NodeID::Return:
-							// check if the value will go out of scope with the return
-							// it will have to pass-by-value
-							if ( ret.deref().scope == scope )
-								ret.unfold();
-							scope_pop();
-							return ret;
-						}
-					}
+					if ( flagBreak )	break;
+					if ( flagContinue )	continue;
+					if ( flagReturn )	return ret;
 
 					index += 1;
+				}
+			}
+			else
+			{
+				std::cerr << "[Interpreter] Unexpected loop on variable type. (Line: " << node->token->line << ")" << std::endl;
+				exit( RESULT_CODE_VARIABLE_UNKNOWN );
+			}
+
+			scope_pop();
+		}
+		break;
+
+	case NodeID::ForOfIdentifierRange:
+		{
+			scope_push();
+
+			Value &v = get_or_create_value( node->left );
+			Value identifier = run( node->right );
+			Value &id = identifier.deref();
+
+			Node *startNode = node->right->right;
+			Node *endNode = node->right->right->right;
+
+			i64 start = run( startNode ).get_as_i64( startNode );
+			i64 end = run( endNode ).get_as_i64( endNode );
+			i64 dir = ( end - start );
+
+			dir = ( dir < 0 ? -1 : ( dir > 0 ? 1 : 0 ) );
+
+			Value ret;
+			bool flagBreak;
+			bool flagContinue;
+			bool flagReturn;
+
+			if ( id.type == ValueType::Arr )
+			{
+				for ( i64 i = start; true; i += dir )
+				{
+					if ( i < 0 || i >= static_cast<i64>( id.arr.size() ) )
+					{
+						std::cerr << "[Interpreter] Loop index out of bounds. (Line: " << node->token->line << ")" << std::endl;
+						exit( RESULT_CODE_VARIABLE_UNKNOWN );
+					}
+
+					v = id.arr[ i ];
+
+					for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
+
+					if ( flagBreak )	break;
+					if ( flagContinue )	continue;
+					if ( flagReturn )	return ret;
+					if ( i == end )		break;
+				}
+			}
+			else
+			{
+				std::cerr << "[Interpreter] Unexpected loop on variable type. (Line: " << node->token->line << ")" << std::endl;
+				exit( RESULT_CODE_VARIABLE_UNKNOWN );
+			}
+
+			scope_pop();
+		}
+		break;
+
+	case NodeID::ForOfIdentifierRangeCount:
+		{
+			scope_push();
+
+			Value &v = get_or_create_value( node->left );
+			Value identifier = run( node->right );
+			Value &id = identifier.deref();
+
+			Node *startNode = node->right->right;
+			Node *countNode = node->right->right->right;
+
+			i64 start = run( startNode ).get_as_i64( startNode );
+			i64 end = start + run( countNode ).get_as_i64( countNode );
+
+			Value ret;
+			bool flagBreak;
+			bool flagContinue;
+			bool flagReturn;
+
+			if ( id.type == ValueType::Arr )
+			{
+				for ( i64 i = start; i < end; ++i )
+				{
+					if ( i < 0 || i >= static_cast<i64>( id.arr.size() ) )
+					{
+						std::cerr << "[Interpreter] Loop index out of bounds. (Line: " << node->token->line << ")" << std::endl;
+						exit( RESULT_CODE_VARIABLE_UNKNOWN );
+					}
+
+					v = id.arr[ i ];
+
+					for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
+
+					if ( flagBreak )	break;
+					if ( flagContinue )	continue;
+					if ( flagReturn )	return ret;
 				}
 			}
 			else

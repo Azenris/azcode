@@ -95,7 +95,11 @@ enum class NodeID
 	Assert,
 	ForNumberRange,
 	ForOfIdentifier,
+	ForOfIdentifierRange,
+	ForOfIdentifierRangeCount,
 	While,
+	Continue,
+	Break,
 };
 
 enum class ValueType

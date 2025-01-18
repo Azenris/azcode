@@ -113,8 +113,24 @@ constexpr NodeType NodeTypes[] =
 		.name = "ForOfIdentifier",
 	},
 	{
+		.id = NodeID::ForOfIdentifierRange,
+		.name = "ForOfIdentifierRange",
+	},
+	{
+		.id = NodeID::ForOfIdentifierRangeCount,
+		.name = "ForOfIdentifierRangeCount",
+	},
+	{
 		.id = NodeID::While,
 		.name = "While",
+	},
+	{
+		.id = NodeID::Continue,
+		.name = "Continue",
+	},
+	{
+		.id = NodeID::Break,
+		.name = "Break",
 	},
 };
 
