@@ -15,7 +15,9 @@ struct Interpreter
 	int scope;
 	Value *chainedDotAccess;
 	std::vector<Value *> context;
+	std::vector<std::string> filenames;
 
+	Value run( std::vector<std::string> files, Node *node );
 	Value run( Node *node );
 	Value *chain_access( Node *node, Value *value );
 	Value *get_value_if_exists( Node *node );
@@ -26,4 +28,5 @@ struct Interpreter
 	void cleanup();
 	void scope_push( Value *newContext = nullptr );
 	void scope_pop();
+	std::string fail_at( Node *node );
 };

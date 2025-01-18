@@ -69,7 +69,7 @@ int main( int argc, char *argv[] )
 	parser.run( std::move( lexer.tokens ) );
 	//std::cout << "Parser finished." << std::endl;
 
-	i32 ret = interpreter.run( parser.root ).valueI32;
+	i32 ret = interpreter.run( std::move( lexer.filenames ), parser.root ).valueI32;
 	//std::cout << "Interpreter finished." << std::endl;
 
 	lexer.cleanup();

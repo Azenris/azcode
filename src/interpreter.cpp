@@ -186,7 +186,7 @@ static void print_string( Interpreter *interpreter, std::ostream &out, Node *nod
 					}
 					else
 					{
-						std::cerr << "[Interpreter] Println format token id unexpected. (Line: " << node->token->line << ")" << std::endl;
+						std::cerr << "[Interpreter] Println format token id unexpected. " << interpreter->fail_at( node ) << std::endl;
 						exit( RESULT_CODE_PRINT_FORMAT_TOKEN_ID_UNEXPECTED );
 					}
 				}
@@ -207,9 +207,15 @@ static void print_string( Interpreter *interpreter, std::ostream &out, Node *nod
 	}
 	else
 	{
-		std::cerr << "[Interpreter] Println format expected as a string. (Line: " << node->token->line << ")" << std::endl;
+		std::cerr << "[Interpreter] Println format expected as a string. " << interpreter->fail_at( node ) << std::endl;
 		exit( RESULT_CODE_PRINT_FORMAT_UNEXPECTED );
 	}
+}
+
+Value Interpreter::run( std::vector<std::string> files, Node *node )
+{
+	filenames = std::move( files );
+	return run( node );
 }
 
 Value Interpreter::run( Node *node )
@@ -273,7 +279,7 @@ Value Interpreter::run( Node *node )
 					break;
 
 				default:
-					std::cerr << "[Interpreter] Unexpected struct assignment type \"" << child->type << "\" (Line: " << child->token->line << ")" << std::endl;
+					std::cerr << "[Interpreter] Unexpected struct assignment type \"" << child->type << "\" " << fail_at( child ) << std::endl;
 					exit( RESULT_CODE_UNEXPECTED_STRUCT_ASSIGNMENT_TYPE );
 				}
 			}
@@ -396,7 +402,7 @@ Value Interpreter::run( Node *node )
 					if ( ( funcNode->right ? funcNode->right->children.size() : 0 ) != node->children.size() )
 					{
 						std::cerr << "[Interpreter] Function wants " << ( funcNode->right ? funcNode->right->children.size() : 0 )
-							<< " args, but was given " << node->children.size() << " args. (Line: " << node->token->line << ")" << std::endl;
+							<< " args, but was given " << node->children.size() << " args. " << fail_at( node ) << std::endl;
 						exit( RESULT_CODE_FUNCTION_ARG_COUNT );
 					}
 
@@ -437,7 +443,7 @@ Value Interpreter::run( Node *node )
 			}
 			else
 			{
-				std::cerr << "[Interpreter] Not callable \"" << node->left->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
+				std::cerr << "[Interpreter] Not callable \"" << node->left->value.valueString << "\" " << fail_at( node ) << std::endl;
 				exit( RESULT_CODE_UNEXPECTED_NOT_CALLABLE );
 			}
 		}
@@ -494,7 +500,7 @@ Value Interpreter::run( Node *node )
 		{
 			if ( !run( node->left ).get_as_bool( node ) )
 			{
-				std::cerr << "[Interpreter] (ASSERT) (Line: " << node->token->line << ")";
+				std::cerr << "[Interpreter] (ASSERT) " << fail_at( node ) << std::endl;
 
 				if ( node->right )
 				{
@@ -607,7 +613,7 @@ Value Interpreter::run( Node *node )
 			}
 			else
 			{
-				std::cerr << "[Interpreter] Unexpected loop on variable type. (Line: " << node->token->line << ")" << std::endl;
+				std::cerr << "[Interpreter] Unexpected loop on variable type. " << fail_at( node ) << std::endl;
 				exit( RESULT_CODE_VARIABLE_UNKNOWN );
 			}
 
@@ -643,7 +649,7 @@ Value Interpreter::run( Node *node )
 				{
 					if ( i < 0 || i >= static_cast<i64>( id.arr.size() ) )
 					{
-						std::cerr << "[Interpreter] Loop index out of bounds. (Line: " << node->token->line << ")" << std::endl;
+						std::cerr << "[Interpreter] Loop index out of bounds. " << fail_at( node ) << std::endl;
 						exit( RESULT_CODE_VARIABLE_UNKNOWN );
 					}
 
@@ -659,7 +665,7 @@ Value Interpreter::run( Node *node )
 			}
 			else
 			{
-				std::cerr << "[Interpreter] Unexpected loop on variable type. (Line: " << node->token->line << ")" << std::endl;
+				std::cerr << "[Interpreter] Unexpected loop on variable type. " << fail_at( node ) << std::endl;
 				exit( RESULT_CODE_VARIABLE_UNKNOWN );
 			}
 
@@ -692,7 +698,7 @@ Value Interpreter::run( Node *node )
 				{
 					if ( i < 0 || i >= static_cast<i64>( id.arr.size() ) )
 					{
-						std::cerr << "[Interpreter] Loop index out of bounds. (Line: " << node->token->line << ")" << std::endl;
+						std::cerr << "[Interpreter] Loop index out of bounds. " << fail_at( node ) << std::endl;
 						exit( RESULT_CODE_VARIABLE_UNKNOWN );
 					}
 
@@ -707,7 +713,7 @@ Value Interpreter::run( Node *node )
 			}
 			else
 			{
-				std::cerr << "[Interpreter] Unexpected loop on variable type. (Line: " << node->token->line << ")" << std::endl;
+				std::cerr << "[Interpreter] Unexpected loop on variable type. " << fail_at( node ) << std::endl;
 				exit( RESULT_CODE_VARIABLE_UNKNOWN );
 			}
 
@@ -765,7 +771,7 @@ Value *Interpreter::chain_access( Node *node, Value *value )
 
 		if ( subIter == l.map.end() )
 		{
-			std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". (Line: " << child->token->line << ")" << std::endl;
+			std::cerr << "[Interpreter] \"" << child->value.valueString << "\" is not a variable in \"" << from << "\". " << fail_at( child ) << std::endl;
 			exit( RESULT_CODE_VARIABLE_UNKNOWN );
 		}
 
@@ -811,7 +817,7 @@ Value &Interpreter::get_value( Node *node )
 		Value *chainedValue = chain_access( node, context.back() );
 		if ( chainedValue )
 			return *chainedValue;
-		std::cerr << "[Interpreter] Variable unknown \"self\" (Line: " << node->token->line << ")" << std::endl;
+		std::cerr << "[Interpreter] Variable unknown \"self\" " << fail_at( node ) << std::endl;
 		exit( RESULT_CODE_VARIABLE_UNKNOWN );
 	}
 
@@ -821,7 +827,7 @@ Value &Interpreter::get_value( Node *node )
 		Value *chainedValue = chain_access( node, &value );
 		if ( chainedValue )
 			return *chainedValue;
-		std::cerr << "[Interpreter] Variable unknown \"" << node->left->value.valueString << "\" (Line: " << node->left->token->line << ")" << std::endl;
+		std::cerr << "[Interpreter] Variable unknown \"" << node->left->value.valueString << "\" " << fail_at( node->left ) << std::endl;
 		exit( RESULT_CODE_VARIABLE_UNKNOWN );
 	}
 
@@ -840,7 +846,7 @@ Value &Interpreter::get_value( Node *node )
 		}
 	}
 
-	std::cerr << "[Interpreter] Variable unknown \"" << node->value.valueString << "\" (Line: " << node->token->line << ")" << std::endl;
+	std::cerr << "[Interpreter] Variable unknown \"" << node->value.valueString << "\" " << fail_at( node ) << std::endl;
 	exit( RESULT_CODE_VARIABLE_UNKNOWN );
 }
 
@@ -936,4 +942,9 @@ void Interpreter::scope_pop()
 
 	scopeWatch.pop_back();
 	scope -= 1;
+}
+
+std::string Interpreter::fail_at( Node *node )
+{
+	 return "(Line: " + std::to_string( node->token->line ) + ") (File: " + filenames[ node->token->file ] + ")";
 }
