@@ -14,6 +14,7 @@ call:run_test functions
 call:run_test looping
 call:run_test objects
 call:run_test printing
+call:run_test misc
 
 popd
 exit /b

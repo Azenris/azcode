@@ -1,0 +1,6 @@
+
+#include "included_file.aas"
+
+println test(), test1(), test2(), test3()
+
+assert test4() == 42

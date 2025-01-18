@@ -1,4 +1,6 @@
 
+#include <filesystem>
+
 #include "lexer.h"
 
 // Note: \n is not skipped, it is used to break statements up
@@ -98,9 +100,9 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 			const KeywordType *kw = get_keyword( lexer->str );
 			if ( kw )
-				return { .id = TokenID::Keyword, .value = { kw->id, lexer->str.c_str() }, .line = lexer->line };
+				return { .id = TokenID::Keyword, .value = { kw->id, lexer->str.c_str() }, .line = lexer->line, .file = lexer->file };
 
-			return { .id = TokenID::Identifier, .value = lexer->str, .line = lexer->line };
+			return { .id = TokenID::Identifier, .value = lexer->str, .line = lexer->line, .file = lexer->file };
 		}
 
 		if ( is_digit( c ) )
@@ -111,7 +113,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			if ( to_int( &number, lexer->txt, &end ) == ToIntResult::Success )
 			{
 				lexer->txt = end;
-				return { .id = TokenID::Number, .value = number, .line = lexer->line };
+				return { .id = TokenID::Number, .value = number, .line = lexer->line, .file = lexer->file };
 			}
 
 			std::cerr << "[Lexer] Could not convert value to int ( " << lexer->txt << " )." << std::endl;
@@ -124,178 +126,178 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::MinusAssign, .line = lexer->line };
+				return { .id = TokenID::MinusAssign, .line = lexer->line, .file = lexer->file };
 			}
 			else
 			{
 				lexer->txt += 1;
-				return { .id = TokenID::Minus, .line = lexer->line };
+				return { .id = TokenID::Minus, .line = lexer->line, .file = lexer->file };
 			}
 
 		case '+':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::PlusAssign, .line = lexer->line };
+				return { .id = TokenID::PlusAssign, .line = lexer->line, .file = lexer->file };
 			}
 			else
 			{
 				lexer->txt += 1;
-				return { .id = TokenID::Plus, .line = lexer->line };
+				return { .id = TokenID::Plus, .line = lexer->line, .file = lexer->file };
 			}
 
 		case '*':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::AsteriskAssign, .line = lexer->line };
+				return { .id = TokenID::AsteriskAssign, .line = lexer->line, .file = lexer->file };
 			}
 			else
 			{
 				lexer->txt += 1;
-				return { .id = TokenID::Asterisk, .line = lexer->line };
+				return { .id = TokenID::Asterisk, .line = lexer->line, .file = lexer->file };
 			}
 
 		case '=':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::DoubleAssign, .line = lexer->line };
+				return { .id = TokenID::DoubleAssign, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::Assign, .line = lexer->line };
+			return { .id = TokenID::Assign, .line = lexer->line, .file = lexer->file };
 
 		case '^':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::HatAssign, .line = lexer->line };
+				return { .id = TokenID::HatAssign, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::Hat, .line = lexer->line };
+			return { .id = TokenID::Hat, .line = lexer->line, .file = lexer->file };
 
 		case '%':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::PercentAssign, .line = lexer->line };
+				return { .id = TokenID::PercentAssign, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::Percent, .line = lexer->line };
+			return { .id = TokenID::Percent, .line = lexer->line, .file = lexer->file };
 
 		case '~':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::TildeAssign, .line = lexer->line };
+				return { .id = TokenID::TildeAssign, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::Tilde, .line = lexer->line };
+			return { .id = TokenID::Tilde, .line = lexer->line, .file = lexer->file };
 
 		case '>':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::GreaterOrEqual, .line = lexer->line };
+				return { .id = TokenID::GreaterOrEqual, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::GreaterThan, .line = lexer->line };
+			return { .id = TokenID::GreaterThan, .line = lexer->line, .file = lexer->file };
 
 		case '<':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::LesserOrEqual, .line = lexer->line };
+				return { .id = TokenID::LesserOrEqual, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::LesserThan, .line = lexer->line };
+			return { .id = TokenID::LesserThan, .line = lexer->line, .file = lexer->file };
 
 		case '&':
 			if ( *( lexer->txt + 1 ) == '&' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::DoubleAmp, .line = lexer->line };
+				return { .id = TokenID::DoubleAmp, .line = lexer->line, .file = lexer->file };
 			}
 			else if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::AmpAssign, .line = lexer->line };
+				return { .id = TokenID::AmpAssign, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::Amp, .line = lexer->line };
+			return { .id = TokenID::Amp, .line = lexer->line, .file = lexer->file };
 
 		case '|':
 			if ( *( lexer->txt + 1 ) == '|' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::DoublePipe, .line = lexer->line };
+				return { .id = TokenID::DoublePipe, .line = lexer->line, .file = lexer->file };
 			}
 			else if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::PipeAssign, .line = lexer->line };
+				return { .id = TokenID::PipeAssign, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::Pipe, .line = lexer->line };
+			return { .id = TokenID::Pipe, .line = lexer->line, .file = lexer->file };
 
 		case '!':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::ExclamationAssign, .line = lexer->line };
+				return { .id = TokenID::ExclamationAssign, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::Exclamation, .line = lexer->line };
+			return { .id = TokenID::Exclamation, .line = lexer->line, .file = lexer->file };
 
 		case '(':
 			lexer->txt += 1;
-			return { .id = TokenID::ParenOpen, .line = lexer->line };
+			return { .id = TokenID::ParenOpen, .line = lexer->line, .file = lexer->file };
 
 		case ')':
 			lexer->txt += 1;
-			return { .id = TokenID::ParenClose, .line = lexer->line };
+			return { .id = TokenID::ParenClose, .line = lexer->line, .file = lexer->file };
 
 		case '{':
 			lexer->txt += 1;
-			return { .id = TokenID::BraceOpen, .line = lexer->line };
+			return { .id = TokenID::BraceOpen, .line = lexer->line, .file = lexer->file };
 
 		case '}':
 			lexer->txt += 1;
-			return { .id = TokenID::BraceClose, .line = lexer->line };
+			return { .id = TokenID::BraceClose, .line = lexer->line, .file = lexer->file };
 
 		case '[':
 			lexer->txt += 1;
-			return { .id = TokenID::SquareOpen, .line = lexer->line };
+			return { .id = TokenID::SquareOpen, .line = lexer->line, .file = lexer->file };
 
 		case ']':
 			lexer->txt += 1;
-			return { .id = TokenID::SquareClose, .line = lexer->line };
+			return { .id = TokenID::SquareClose, .line = lexer->line, .file = lexer->file };
 
 		case '.':
 			if ( *( lexer->txt + 1 ) == '.' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::DoublePeriod, .line = lexer->line };
+				return { .id = TokenID::DoublePeriod, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::Period, .line = lexer->line };
+			return { .id = TokenID::Period, .line = lexer->line, .file = lexer->file };
 
 		case ',':
 			lexer->txt += 1;
-			return { .id = TokenID::Comma, .line = lexer->line };
+			return { .id = TokenID::Comma, .line = lexer->line, .file = lexer->file };
 
 		case ':':
 			if ( *( lexer->txt + 1 ) == '=' )
 			{
 				lexer->txt += 2;
-				return { .id = TokenID::ColonAssign, .line = lexer->line };
+				return { .id = TokenID::ColonAssign, .line = lexer->line, .file = lexer->file };
 			}
 			lexer->txt += 1;
-			return { .id = TokenID::Colon, .line = lexer->line };
+			return { .id = TokenID::Colon, .line = lexer->line, .file = lexer->file };
 
 		case ';':
 			lexer->txt += 1;
-			return { .id = TokenID::SemiColon, .line = lexer->line };
+			return { .id = TokenID::SemiColon, .line = lexer->line, .file = lexer->file };
 
 		case '\n':
 			lexer->line += 1;
@@ -347,7 +349,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 				lexer->txt += 1;
 
-				return { .id = TokenID::StringLiteral, .value = lexer->str, .line = lexer->line };
+				return { .id = TokenID::StringLiteral, .value = lexer->str, .line = lexer->line, .file = lexer->file };
 			}
 			break;
 
@@ -369,7 +371,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 								c = *(++lexer->txt);
 								if ( c == '\0' )
 								{
-									return { .id = TokenID::EndOfFile, .line = lexer->line };
+									return { .id = TokenID::EndOfFile, .line = lexer->line, .file = lexer->file };
 								}
 								else if ( c == '\n' )
 								{
@@ -401,35 +403,144 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 					{
 						c = *(++lexer->txt);
 						if ( c == '\0' )
-							return { .id = TokenID::EndOfFile, .line = lexer->line };
+							return { .id = TokenID::EndOfFile, .line = lexer->line, .file = lexer->file };
 					} while ( c != '\n' );
 					lexer->line += 1;
 					break;
 
 				case '=':
 					lexer->txt += 2;
-					return { .id = TokenID::DivideAssign, .line = lexer->line };
+					return { .id = TokenID::DivideAssign, .line = lexer->line, .file = lexer->file };
 
 				default:
 					lexer->txt += 1;
-					return { .id = TokenID::Divide, .line = lexer->line };
+					return { .id = TokenID::Divide, .line = lexer->line, .file = lexer->file };
 				}
 			}
+			break;
+
+		case '#':
+			{
+				const char *start = ++lexer->txt;
+				u64 len = 0;
+
+				lexer->str.clear();
+
+				do
+				{
+					len += 1;
+					c = *(++lexer->txt);
+				} while ( is_identifier( c ) );
+
+				lexer->str.assign( start, len );
+
+				if ( lexer->str == "include" )
+				{
+					skip_whitespace( lexer );
+
+					lexer->str.clear();
+
+					if ( *++lexer->txt != '"' )
+					{
+						start = lexer->txt;
+						len = 0;
+						c = *start;
+
+						while ( c != '"' )
+						{
+							len += 1;
+							c = *(++lexer->txt);
+
+							if ( c == '\0' )
+							{
+								std::cerr << "[Lexer] Included file string literal not closed." << std::endl;
+								exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
+							}
+							else if ( c == '\n' )
+							{
+								lexer->line += 1;
+							}
+						}
+
+						lexer->str.append( start, len );
+
+						if ( std::find( lexer->filenames.begin(), lexer->filenames.end(), lexer->str ) == lexer->filenames.end() )
+						{
+							lexer->filenames.push_back( lexer->str );
+
+							std::string data;
+
+							{
+								std::string filename = std::filesystem::path( lexer->filenames[ 0 ] ).parent_path().string() + "\\" + lexer->str;
+
+								std::ifstream file( filename );
+
+								if ( !file.is_open() )
+								{
+									std::cerr << "Unable to open included file: " << filename << std::endl;
+									exit( RESULT_CODE_FAILED_TO_OPEN_INCLUDED_FILE );
+								}
+
+								std::stringstream stream;
+								stream << file.rdbuf();
+								data = stream.str();
+							}
+
+							Token token;
+							token.id = TokenID::EndOfFile;
+
+							i32 line = lexer->line;
+							lexer->file += 1;
+							const char *txt = lexer->txt;
+
+							lexer->line = 1;
+							lexer->txt = data.c_str();
+
+							while ( true )
+							{
+								token = next_token( lexer, &token );
+								if ( token.id == TokenID::EndOfFile )
+									break;
+								lexer->tokens.push_back( token );
+							}
+
+							lexer->line = line;
+							lexer->file -= 1;
+							lexer->txt = txt;
+						}
+					}
+					else
+					{
+						std::cerr << "[Lexer] Expected opening \" for file ( " << lexer->str << " )." << std::endl;
+						exit( RESULT_CODE_CANNOT_CONVERT_TO_INT );
+					}
+				}
+				else
+				{
+					std::cerr << "[Lexer] Unknown command ( " << lexer->str << " )." << std::endl;
+					exit( RESULT_CODE_CANNOT_CONVERT_TO_INT );
+				}
+			}
+			break;
 		}
 
 		c = *(++lexer->txt);
 	}
 
-	return { .id = TokenID::EndOfFile, .line = lexer->line };
+	return { .id = TokenID::EndOfFile, .line = lexer->line, .file = lexer->file };
 }
 
-void Lexer::run( std::string data )
+void Lexer::run( std::string filename, std::string data )
 {
 	tokens.clear();
 	tokens.reserve( 65536 );
 	txt = data.c_str();
 	str.reserve( 512 );
+
+	filenames.push_back( filename );
+
 	line = 1;
+	file = 0;
 
 	Token token;
 	token.id = TokenID::EndOfFile;

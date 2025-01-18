@@ -63,7 +63,7 @@ int main( int argc, char *argv[] )
 	Parser parser;
 	Interpreter interpreter;
 
-	lexer.run( std::move( data ) );
+	lexer.run( filename, std::move( data ) );
 	//std::cout << "lexer finished." << std::endl;
 
 	parser.run( std::move( lexer.tokens ) );

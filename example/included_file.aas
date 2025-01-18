@@ -1,0 +1,20 @@
+
+test := () {
+	return "Func from Include! %0 %1 %2"
+}
+
+test1 := () {
+	return 11
+}
+
+test2 := () {
+	return 22
+}
+
+test3 := () {
+	return 33
+}
+
+test4 := () {
+	return 42
+}

@@ -323,6 +323,7 @@ struct Token
 	TokenID id;
 	Value value;
 	i32 line;
+	i32 file;
 };
 
 std::ostream & operator << ( std::ostream &out, const Token &token );
