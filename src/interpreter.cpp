@@ -6,7 +6,7 @@
 
 #include "interpreter.h"
 
-static void for_loop_codeblock( Interpreter *interpreter, Node *node, bool *flagBreak, bool *flagContinue, bool *flagReturn, Value *ret )
+static void breakable_codeblock( Interpreter *interpreter, Node *node, bool *flagBreak, bool *flagContinue, bool *flagReturn, Value *ret )
 {
 	*flagContinue = false;
 	*flagBreak = false;
@@ -541,7 +541,7 @@ Value Interpreter::run( Node *node )
 			{
 				v = i;
 
-				for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
+				breakable_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
 				if ( i == end )		break;
 				if ( flagBreak )	break;
@@ -574,7 +574,7 @@ Value Interpreter::run( Node *node )
 				{
 					v = entry;
 
-					for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
+					breakable_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
 					if ( flagBreak )	break;
 					if ( flagContinue )	continue;
@@ -596,7 +596,7 @@ Value Interpreter::run( Node *node )
 					key = entry.first;
 					value = entry.second;
 
-					for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
+					breakable_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
 					if ( flagBreak )	break;
 					if ( flagContinue )	continue;
@@ -649,7 +649,7 @@ Value Interpreter::run( Node *node )
 
 					v = id.arr[ i ];
 
-					for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
+					breakable_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
 					if ( i == end )		break;
 					if ( flagBreak )	break;
@@ -698,7 +698,7 @@ Value Interpreter::run( Node *node )
 
 					v = id.arr[ i ];
 
-					for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
+					breakable_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
 					if ( flagBreak )	break;
 					if ( flagContinue )	continue;
@@ -712,6 +712,34 @@ Value Interpreter::run( Node *node )
 			}
 
 			scope_pop();
+		}
+		break;
+
+	case NodeID::While:
+		{
+			scope_push();
+
+			if ( run( node->left ).get_as_bool( node->left ) )
+			{
+				Value ret;
+				bool flagBreak;
+				bool flagContinue;
+				bool flagReturn;
+
+				while ( true )
+				{
+					breakable_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
+
+					if ( !run( node->left ).get_as_bool( node->left ) )
+						break;
+
+					if ( flagBreak )	break;
+					if ( flagContinue )	continue;
+					if ( flagReturn )	return ret;
+				}
+
+				scope_pop();
+			}
 		}
 		break;
 	}

@@ -1,7 +1,6 @@
 
 /*
 	TODO:
-	  while
 	  exit
 	  include
 	  switch, case, fallthrough
@@ -10,8 +9,6 @@
 		Arrays: find, remove, remove_value
 		Object: insert, find, remove, remove_value, exists
 */
-
-// TODO whiles
 
 // Random Ideas -------------------------------------------------------
 // Variables Types ?

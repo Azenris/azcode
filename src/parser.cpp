@@ -423,7 +423,12 @@ static Node *parser_parse_keyword( Parser *parser )
 
 	case KeywordID::While:
 		{
-			// TODO fff
+			Node *node = new_node( parser, NodeID::While, token );
+			parser_consume( parser, TokenID::ParenOpen );
+			node->left = parser_parse( parser );
+			parser_consume( parser, TokenID::ParenClose );
+			parser_parse_codeblock( parser, node );
+			return node;
 		}
 		break;
 

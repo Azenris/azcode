@@ -78,3 +78,24 @@ for ( idx : 1 .. 5 ) {
 	}
 	println idx
 }
+
+// While Loops
+run = true
+index = 0
+
+while ( run ) {
+	println index
+	index += 1
+	run = index < 10
+}
+
+index = 0
+
+f := () {
+	index += 1
+	return index < 10
+}
+
+while ( f() ) {
+	println index
+}
