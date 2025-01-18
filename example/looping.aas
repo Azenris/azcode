@@ -1,12 +1,28 @@
 
+// Loop over a range, from 1 to 5
 for ( idx : 1 .. 5 ) {
 	println idx
+}
+
+// Loop inside Loop
+t = 0
+for ( y : 0 .. 4 ) {
+	for ( x : 0 .. 4 ) {
+		tmp = x + y * 5
+		assert tmp == t
+		t += 1
+	}
 }
 
 arr = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
 
 // Loop all with the value in idx
 for ( idx : arr ) {
+	println idx
+}
+
+// Loop with temporary array
+for ( idx : [ 5, 7, 2, 1 ] ) {
 	println idx
 }
 

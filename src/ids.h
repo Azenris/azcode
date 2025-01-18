@@ -94,6 +94,7 @@ enum class NodeID
 	Println,
 	Assert,
 	ForNumberRange,
+	ForOfIdentifier,
 	While,
 };
 

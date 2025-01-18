@@ -109,6 +109,10 @@ constexpr NodeType NodeTypes[] =
 		.name = "ForNumberRange",
 	},
 	{
+		.id = NodeID::ForOfIdentifier,
+		.name = "ForOfIdentifier",
+	},
+	{
 		.id = NodeID::While,
 		.name = "While",
 	},

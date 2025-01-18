@@ -12,15 +12,6 @@
 		Object: insert, find, remove, remove_value, exists
 */
 
-for ( idx : 1 .. 50 ) {
-	if ( ( idx & 1 ) == 0 ) {
-		println "%0 is even", idx
-	} else {
-		println "%0 is odd", idx
-	}
-}
-
-/*
 arr = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
 
 // Loop all with the value in idx
@@ -28,13 +19,8 @@ for ( idx : arr ) {
 	println idx
 }
 
-// Loop from index 2 to index 4 ( 2, 3, 4 )
-for ( idx : arr, 2 .. 4 ) {
-	println idx
-}
 
-// Loop from index 0, for 4 entries ( 2, 3, 4, 5 )
-for ( idx : arr, 2 : 4 ) {
+for ( idx : [ 5, 7, 2, 1 ] ) {
 	println idx
 }
 
@@ -49,6 +35,21 @@ obj = {
 // Loop all entries of a map
 for ( o : obj ) {
 	println "Key: %0, Value: %1", o.key, o.value
+}
+
+/*
+
+// Loop from index 2 to index 4 ( 2, 3, 4 )
+for ( idx : arr, 2 .. 4 ) {
+	println idx
+}
+
+// Loop from index 0, for 4 entries ( 2, 3, 4, 5 )
+for ( idx : arr, 2 : 4 ) {
+	println idx
+}
+
+
 }
 */
 

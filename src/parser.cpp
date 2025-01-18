@@ -382,22 +382,26 @@ static Node *parser_parse_keyword( Parser *parser )
 		{
 			Node *node = new_node( parser, NodeID::ForNumberRange, token );
 			parser_consume( parser, TokenID::ParenOpen );
-
 			node->left = parser_parse_identifier( parser );
-
 			parser_consume( parser, TokenID::Colon );
 
-			Node *start = parser_parse( parser );
-			parser_consume( parser, TokenID::DoublePeriod );
-			Node *end = parser_parse( parser );
+			Node *first = parser_parse( parser );
 
-			node->right = start;
-			start->right = end;
+			if ( parser->token->id == TokenID::DoublePeriod )
+			{
+				parser_consume( parser, TokenID::DoublePeriod );
+				node->type = NodeID::ForNumberRange;
+				node->right = first;
+				first->right = parser_parse( parser );
+			}
+			else
+			{
+				node->type = NodeID::ForOfIdentifier;
+				node->right = first;
+			}
 
 			parser_consume( parser, TokenID::ParenClose );
-
 			parser_parse_codeblock( parser, node );
-
 			return node;
 		}
 		break;

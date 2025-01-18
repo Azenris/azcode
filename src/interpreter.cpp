@@ -465,34 +465,128 @@ Value Interpreter::run( Node *node )
 			{
 				v = i;
 
-				// -- process the codeblock of the function --
 				for ( auto child : node->children )
 				{
 					// switch ( child->type )
 					// {
 					//case NodeID::Continue:
-					//	break; // TODO fff
+					//	break; // TNodeID::ForNumberRangeODO fff
 
 					//case NodeID::Break:
 					//	break; // TODO fff
 					// }
 
-					Value value = run( child );
+					Value ret = run( child );
 
 					switch ( child->type )
 					{
 					case NodeID::Return:
 						// check if the value will go out of scope with the return
 						// it will have to pass-by-value
-						if ( value.deref().scope == scope )
-							value.unfold();
+						if ( ret.deref().scope == scope )
+							ret.unfold();
 						scope_pop();
-						return value;
+						return ret;
 					}
 				}
 
 				if ( i == end )
 					break;
+			}
+
+			scope_pop();
+		}
+		break;
+
+	case NodeID::ForOfIdentifier:
+		{
+			scope_push();
+
+			Value &v = get_or_create_value( node->left );
+			Value identifier = run( node->right );
+			Value &id = identifier.deref();
+
+			if ( id.type == ValueType::Arr )
+			{
+				i64 index = 0;
+
+				for ( auto &entry : id.arr )
+				{
+					v = entry;
+
+					for ( auto child : node->children )
+					{
+						// switch ( child->type )
+						// {
+						//case NodeID::Continue:
+						//	break; // TODO fff
+
+						//case NodeID::Break:
+						//	break; // TODO fff
+						// }
+
+						Value ret = run( child );
+
+						switch ( child->type )
+						{
+						case NodeID::Return:
+							// check if the value will go out of scope with the return
+							// it will have to pass-by-value
+							if ( ret.deref().scope == scope )
+								ret.unfold();
+							scope_pop();
+							return ret;
+						}
+					}
+
+					index += 1;
+				}
+			}
+			else if ( id.type == ValueType::Struct )
+			{
+				i64 index = 0;
+
+				v.type = ValueType::Struct;
+				Value &key = v.map[ "key" ];
+				Value &value = v.map[ "value" ];
+
+				for ( auto &entry : id.map )
+				{
+					key = entry.first;
+					value = entry.second;
+
+					for ( auto child : node->children )
+					{
+						// switch ( child->type )
+						// {
+						//case NodeID::Continue:
+						//	break; // TODO fff
+
+						//case NodeID::Break:
+						//	break; // TODO fff
+						// }
+
+						Value ret = run( child );
+
+						switch ( child->type )
+						{
+						case NodeID::Return:
+							// check if the value will go out of scope with the return
+							// it will have to pass-by-value
+							if ( ret.deref().scope == scope )
+								ret.unfold();
+							scope_pop();
+							return ret;
+						}
+					}
+
+					index += 1;
+				}
+			}
+			else
+			{
+				std::cerr << "[Interpreter] Unexpected loop on variable type. (Line: " << node->token->line << ")" << std::endl;
+				exit( RESULT_CODE_VARIABLE_UNKNOWN );
 			}
 
 			scope_pop();
