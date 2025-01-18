@@ -67,6 +67,8 @@ static i32 get_operator_precedence( TokenID tokenID )
 	case TokenID::Pipe: return 4;
 	case TokenID::Hat: return 3;
 	case TokenID::Percent: return 0;
+	case TokenID::DoubleAssign: return 5;
+	case TokenID::ExclamationAssign: return 5;
 	}
 	std::cerr << "[Parser] Unexpected operator precendence token( " << tokenID << " )." << std::endl;
 	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
@@ -108,6 +110,8 @@ static Node *parser_parse_operator( Parser *parser, Node *node )
 	case TokenID::Pipe:
 	case TokenID::Hat:
 	case TokenID::Percent:
+	case TokenID::DoubleAssign:
+	case TokenID::ExclamationAssign:
 		{
 			Token *token = parser_consume( parser, parser->token->id );
 			Node *op = new_node( parser, NodeID::Operation, token );
@@ -124,26 +128,6 @@ static Node *parser_parse_operator( Parser *parser, Node *node )
 			{
 				node = op;
 			}
-		}
-		break;
-
-	case TokenID::DoubleAssign:
-		{
-			Token *token = parser_consume( parser, TokenID::DoubleAssign );
-			Node *equal = new_node( parser, NodeID::Equal, token );
-			equal->left = node;
-			equal->right = parser_parse( parser );
-			return equal;
-		}
-		break;
-
-	case TokenID::ExclamationAssign:
-		{
-			Token *token = parser_consume( parser, TokenID::ExclamationAssign );
-			Node *notEqual = new_node( parser, NodeID::NotEqual, token );
-			notEqual->left = node;
-			notEqual->right = parser_parse( parser );
-			return notEqual;
 		}
 		break;
 	}

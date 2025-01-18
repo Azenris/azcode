@@ -83,8 +83,6 @@ enum class NodeID
 	Assignment,
 	Operation,
 	AssignmentOp,
-	Equal,
-	NotEqual,
 	DeclFunc,
 	FunctionArgs,
 	FunctionCall,

@@ -265,14 +265,16 @@ Value Interpreter::run( Node *node )
 	case NodeID::Operation:
 		switch ( node->token->id )
 		{
-		case TokenID::Minus:			return run( node->left ) - run( node->right ); break;
-		case TokenID::Plus:				return run( node->left ) + run( node->right ); break;
-		case TokenID::Divide:			return run( node->left ) / run( node->right ); break;
-		case TokenID::Asterisk:			return run( node->left ) * run( node->right ); break;
-		case TokenID::Amp:				return run( node->left ) & run( node->right ); break;
-		case TokenID::Pipe:				return run( node->left ) | run( node->right ); break;
-		case TokenID::Hat:				return run( node->left ) ^ run( node->right ); break;
-		case TokenID::Percent:			return run( node->left ) % run( node->right ); break;
+		case TokenID::Minus:				return run( node->left ) - run( node->right );
+		case TokenID::Plus:					return run( node->left ) + run( node->right );
+		case TokenID::Divide:				return run( node->left ) / run( node->right );
+		case TokenID::Asterisk:				return run( node->left ) * run( node->right );
+		case TokenID::Amp:					return run( node->left ) & run( node->right );
+		case TokenID::Pipe:					return run( node->left ) | run( node->right );
+		case TokenID::Hat:					return run( node->left ) ^ run( node->right );
+		case TokenID::Percent:				return run( node->left ) % run( node->right );
+		case TokenID::DoubleAssign:			return run( node->left ) == run( node->right );
+		case TokenID::ExclamationAssign:	return run( node->left ) != run( node->right );
 		}
 		break;
 
@@ -328,12 +330,6 @@ Value Interpreter::run( Node *node )
 			}
 		}
 		break;
-
-	case NodeID::Equal:
-		return run( node->left ) == run( node->right );
-
-	case NodeID::NotEqual:
-		return run( node->left ) != run( node->right );
 
 	case NodeID::DeclFunc:
 		get_or_create_value( node->left ) = node;
