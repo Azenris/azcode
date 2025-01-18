@@ -62,3 +62,19 @@ for ( idx : 1 .. 5 ) {
 		println "%0 is odd", idx
 	}
 }
+
+// Breaking
+for ( idx : 1 .. 5 ) {
+	println idx
+	if ( idx == 2 ) {
+		break
+	}
+}
+
+// Continue
+for ( idx : 1 .. 5 ) {
+	if ( idx & 1 == 0 ) {
+		continue
+	}
+	println idx
+}

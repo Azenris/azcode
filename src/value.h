@@ -100,6 +100,13 @@ struct Value
 	{
 	}
 
+	Value( KeywordID keywordID )
+		: type( ValueType::Command )
+		, scope( -2 )
+		, keywordID( keywordID )
+	{
+	}
+
 	Value( Node *node )
 		: type( ValueType::Node )
 		, scope( -2 )

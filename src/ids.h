@@ -67,6 +67,8 @@ enum class KeywordID
 	Assert,
 	For,
 	While,
+	Break,
+	Continue,
 };
 
 enum class NodeID
@@ -113,4 +115,5 @@ enum class ValueType
 	Node,
 	InbuiltFunc,
 	Reference,
+	Command,
 };

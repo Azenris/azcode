@@ -17,15 +17,29 @@ static void for_loop_codeblock( Interpreter *interpreter, Node *node, bool *flag
 		switch ( child->type )
 		{
 		case NodeID::Continue:
-			*flagContinue = false;
+			*flagContinue = true;
 			return;
 
 		case NodeID::Break:
-			*flagBreak = false;
+			*flagBreak = true;
 			return;
 		}
 
 		*ret = interpreter->run( child );
+
+		if ( ret->type == ValueType::Command )
+		{
+			switch ( ret->keywordID )
+			{
+			case KeywordID::Continue:
+				*flagContinue = true;
+				return;
+
+			case KeywordID::Break:
+				*flagBreak = true;
+				return;
+			}
+		}
 
 		switch ( child->type )
 		{
@@ -98,12 +112,35 @@ static Value BuiltInNode_Struct_Count( Interpreter *interpreter, Value &self, No
 static Value process_codeblock( Interpreter *interpreter, Node *node )
 {
 	interpreter->scope_push();
+
 	Value value;
+
 	for ( auto child : node->children )
 	{
-		value = interpreter->run( child );
-		if ( child->type == NodeID::Return )
+		switch ( child->type )
 		{
+		case NodeID::Continue:
+			return KeywordID::Continue;
+
+		case NodeID::Break:
+			return KeywordID::Break;
+		}
+
+		value = interpreter->run( child );
+
+		if ( value.type == ValueType::Command )
+		{
+			switch ( value.keywordID )
+			{
+			case KeywordID::Continue:
+			case KeywordID::Break:
+				return value;
+			}
+		}
+
+		switch ( child->type )
+		{
+		case NodeID::Return:
 			// check if the value will go out of scope with the return
 			// it will have to pass-by-value
 			if ( value.deref().scope == interpreter->scope )
@@ -112,7 +149,9 @@ static Value process_codeblock( Interpreter *interpreter, Node *node )
 			return value;
 		}
 	}
+
 	interpreter->scope_pop();
+
 	return value;
 }
 
@@ -504,10 +543,10 @@ Value Interpreter::run( Node *node )
 
 				for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
+				if ( i == end )		break;
 				if ( flagBreak )	break;
 				if ( flagContinue )	continue;
 				if ( flagReturn )	return ret;
-				if ( i == end )		break;
 			}
 
 			scope_pop();
@@ -612,10 +651,10 @@ Value Interpreter::run( Node *node )
 
 					for_loop_codeblock( this, node, &flagBreak, &flagContinue, &flagReturn, &ret );
 
+					if ( i == end )		break;
 					if ( flagBreak )	break;
 					if ( flagContinue )	continue;
 					if ( flagReturn )	return ret;
-					if ( i == end )		break;
 				}
 			}
 			else

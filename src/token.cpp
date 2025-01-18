@@ -26,6 +26,8 @@ static std::unordered_map<std::string, KeywordID> KeywordsMap =
 	{ "assert", KeywordID::Assert },
 	{ "for", KeywordID::For },
 	{ "while", KeywordID::While },
+	{ "break", KeywordID::Break },
+	{ "continue", KeywordID::Continue },
 };
 
 const KeywordType *get_keyword( const char *keyword )

@@ -61,6 +61,14 @@ constexpr KeywordType Keywords[] =
 		.id = KeywordID::While,
 		.name = "While",
 	},
+	{
+		.id = KeywordID::Break,
+		.name = "Break",
+	},
+	{
+		.id = KeywordID::Continue,
+		.name = "Continue",
+	},
 };
 
 struct TokenType

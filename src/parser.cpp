@@ -293,6 +293,10 @@ static Node *parser_parse_keyword( Parser *parser )
 						node = nullptr;
 					}
 				}
+				else
+				{
+					break;
+				}
 			}
 			return top;
 		}
@@ -422,6 +426,12 @@ static Node *parser_parse_keyword( Parser *parser )
 			// TODO fff
 		}
 		break;
+
+	case KeywordID::Break:
+		return new_node( parser, NodeID::Break, token );
+
+	case KeywordID::Continue:
+		return new_node( parser, NodeID::Continue, token );
 	}
 
 	std::cerr << "[Parser] Unexpected keyword token( " << *parser->token << " )." << std::endl;

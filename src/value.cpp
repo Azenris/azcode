@@ -19,6 +19,7 @@ Value & Value::operator = ( const Value &rhs )
 	case ValueType::Node: l.valueNode = r.valueNode; break;
 	case ValueType::InbuiltFunc: l.valueInbuiltFunc = r.valueInbuiltFunc; break;
 	case ValueType::Reference: l.valueRef = r.valueRef; break;
+	case ValueType::Command: l.keywordID = r.keywordID; break;
 	}
 
 	l.valueString = r.valueString;
@@ -80,6 +81,7 @@ bool Value::get_as_bool( Node *node )
 	case ValueType::Node: return valueNode;
 	case ValueType::InbuiltFunc: return false;
 	case ValueType::Reference: return valueRef->get_as_bool( node );
+	case ValueType::Command: return false;
 	}
 
 	std::cerr << "Cannot convert from " << *this << " to bool. (Line: " << node->token->line << ")" << std::endl;
@@ -144,6 +146,7 @@ i64 Value::count() const
 	case ValueType::Node: return 0;
 	case ValueType::InbuiltFunc: return 0;
 	case ValueType::Reference: return valueRef->count();
+	case ValueType::Command: return 0;
 	}
 	return 0;
 }
@@ -218,6 +221,7 @@ std::ostream & operator << ( std::ostream &out, const Value &value )
 	case ValueType::Node:				return out << "Function";
 	case ValueType::InbuiltFunc:		return out << "InbuiltFunc";
 	case ValueType::Reference:			return out << *value.valueRef;
+	case ValueType::Command:			return out << Keywords[ static_cast<i32>( value.keywordID ) ].name;
 	}
 
 	return out << "Unhandled value ValueType( " << static_cast<i32>( value.type ) << " )";
@@ -238,6 +242,7 @@ std::ostream & operator << ( std::ostream &out, const ValueType &valueType )
 	case ValueType::Node:				return out << "Node";
 	case ValueType::InbuiltFunc:		return out << "InbuiltFunc";
 	case ValueType::Reference:			return out << "Reference";
+	case ValueType::Command:			return out << "Command";
 	}
 
 	return out << "Unhandled value '<<' ValueType( '" << static_cast<i32>( valueType ) << "' )";
