@@ -4,23 +4,13 @@
 
 #include "token.h"
 
-static std::unordered_map<std::string, KeywordID> KeywordsMap =
+static const std::unordered_map<std::string, KeywordID> KeywordsMap = []()
 {
-	{ "import", KeywordID::Import },
-	{ "return", KeywordID::Return },
-	{ "false", KeywordID::False },
-	{ "true", KeywordID::True },
-	{ "if", KeywordID::If },
-	{ "else", KeywordID::Else },
-	{ "print", KeywordID::Print },
-	{ "println", KeywordID::Println },
-	{ "assert", KeywordID::Assert },
-	{ "for", KeywordID::For },
-	{ "while", KeywordID::While },
-	{ "break", KeywordID::Break },
-	{ "continue", KeywordID::Continue },
-	{ "exit", KeywordID::Exit },
-};
+	std::unordered_map<std::string, KeywordID> map;
+	for ( u64 i = 0, count = ARRAY_LENGTH( Keywords ); i < count; ++i )
+		map.insert( { Keywords[ i ].identifier, Keywords[ i ].id } );
+	return map;
+}();
 
 const KeywordType *get_keyword( const char *keyword )
 {

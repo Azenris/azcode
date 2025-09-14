@@ -73,7 +73,7 @@ Value BuiltInNode_Struct_OS_Close( Interpreter *interpreter, Value &self, Node *
 	(void)self;
 	interpreter->expect_arg( "close", args, 1 );
 	Arg arg = &args->children[ 0 ];
-	Value value = interpreter->run( arg ).deref();
+	Value &value = interpreter->run( arg ).deref();
 	if ( value.type != ValueType::File )
 		interpreter->fatal( RESULT_CODE_VALUE_NOT_A_FILE, args, "close called on a value that is not a file." );
 	value.file->close();
@@ -97,7 +97,7 @@ Value BuiltInNode_Struct_OS_FileSize( Interpreter *interpreter, Value &self, Nod
 	(void)self;
 	interpreter->expect_arg( "file_size", args, 1 );
 	Arg arg = &args->children[ 0 ];
-	Value value = interpreter->run( arg ).deref();
+	Value &value = interpreter->run( arg ).deref();
 	if ( value.type == ValueType::File )
 	{
 		std::streampos current = value.file->tellg();
@@ -114,7 +114,7 @@ Value BuiltInNode_Struct_OS_Read( Interpreter *interpreter, Value &self, Node *a
 	(void)self;
 	interpreter->expect_arg( "read", args, 1 );
 	Arg arg = &args->children[ 0 ];
-	Value value = interpreter->run( arg ).deref();
+	Value &value = interpreter->run( arg ).deref();
 	if ( value.type != ValueType::File )
 		interpreter->fatal( RESULT_CODE_VALUE_NOT_A_FILE, args, "read called on a value that is not a file." );
 	// TODO : 
@@ -143,7 +143,7 @@ Value BuiltInNode_Struct_OS_Write( Interpreter *interpreter, Value &self, Node *
 	(void)self;
 	interpreter->expect_arg( "write", args, 2 );
 	Arg arg = &args->children[ 0 ];
-	Value value = interpreter->run( arg.next() ).deref();
+	Value &value = interpreter->run( arg.next() ).deref();
 	if ( value.type != ValueType::File )
 		interpreter->fatal( RESULT_CODE_VALUE_NOT_A_FILE, args, "write called on a value that is not a file." );
 	std::string data = interpreter->run( arg ).get_as_string( interpreter, arg );

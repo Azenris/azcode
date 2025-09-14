@@ -5,6 +5,7 @@ struct KeywordType
 {
 	KeywordID id;
 	const char *name;
+	const char *identifier;
 };
 
 const KeywordType *get_keyword( const char *keyword );
@@ -15,58 +16,72 @@ constexpr KeywordType Keywords[] =
 	{
 		.id = KeywordID::Import,
 		.name = "Import",
+		.identifier = "import",
 	},
 	{
 		.id = KeywordID::Return,
 		.name = "Return",
+		.identifier = "return",
 	},
 	{
 		.id = KeywordID::False,
 		.name = "False",
+		.identifier = "false",
 	},
 	{
 		.id = KeywordID::True,
 		.name = "True",
+		.identifier = "true",
 	},
 	{
 		.id = KeywordID::If,
 		.name = "If",
+		.identifier = "if",
 	},
 	{
 		.id = KeywordID::Else,
 		.name = "Else",
+		.identifier = "else",
 	},
 	{
 		.id = KeywordID::Print,
 		.name = "Print",
+		.identifier = "print",
 	},
 	{
 		.id = KeywordID::Println,
 		.name = "Println",
+		.identifier = "println",
 	},
 	{
 		.id = KeywordID::Assert,
 		.name = "Assert",
+		.identifier = "assert",
 	},
 	{
 		.id = KeywordID::For,
 		.name = "For",
+		.identifier = "for",
 	},
 	{
 		.id = KeywordID::While,
 		.name = "While",
+		.identifier = "while",
 	},
 	{
 		.id = KeywordID::Break,
 		.name = "Break",
+		.identifier = "break",
 	},
 	{
 		.id = KeywordID::Continue,
 		.name = "Continue",
+		.identifier = "continue",
 	},
 	{
 		.id = KeywordID::Exit,
 		.name = "Exit",
+		.identifier = "exit",
 	},
 };
 

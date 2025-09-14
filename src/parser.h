@@ -162,7 +162,7 @@ struct Arg
 {
 	Node **args;
 
-	Arg( Node **children )
+	inline Arg( Node **children )
 		: args( children )
 	{
 	}
@@ -174,7 +174,7 @@ struct Arg
 		return ret;
 	}
 
-	operator Node * () const
+	inline operator Node * () const
 	{
 		return *args;
 	}

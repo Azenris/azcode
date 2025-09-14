@@ -498,15 +498,15 @@ Value Interpreter::run( Node *node )
 				{
 					if ( node->children.empty() )
 					{
-						std::format_to( std::back_inserter( temp ), "{}", run( node->right ) );
+						std::format_to( std::back_inserter( temp ), "{}\n", run( node->right ) );
 					}
 					else
 					{
-						std::format_to( std::back_inserter( temp ), "{}", build_string( this, node, node->right, node, true ) );
+						std::format_to( std::back_inserter( temp ), "{}\n", build_string( this, node, node->right, node, true ) );
 					}
 				}
 
-				fatal( RESULT_CODE_ASSERT_FAILED, node, "(ASSERT)\n{}\n", temp );
+				fatal( RESULT_CODE_ASSERT_FAILED, node, "(ASSERT){}", temp );
 			}
 		}
 		break;
