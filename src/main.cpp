@@ -1,9 +1,9 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <string>
 #include <cassert>
+#include <print>
 
 using i8  = int8_t;
 using i16 = int16_t;
@@ -34,11 +34,11 @@ static_assert( sizeof( f64 ) == 8 );
 #include "interpreter.h"
 #include "result_code.h"
 
-int main( int argc, char *argv[] )
+i32 main( i32 argc, char *argv[] )
 {
 	if ( argc < 2 )
 	{
-		std::cerr << "Missing file to run." << std::endl;
+		std::println( stderr, "Missing file to run." );
 		return RESULT_CODE_NO_FILE_INPUT_TO_PROCESS;
 	}
 
@@ -50,34 +50,29 @@ int main( int argc, char *argv[] )
 
 		if ( !file.is_open() )
 		{
-			std::cerr << "Unable to open file: " << filename << std::endl;
+			std::println( stderr, "Unable to open file: {}", filename );
 			return RESULT_CODE_FAILED_TO_OPEN_INPUT_FILE;
 		}
 
-		std::stringstream stream;
-		stream << file.rdbuf();
-		data = stream.str();
+		data = std::string( ( std::istreambuf_iterator<char>( file ) ), std::istreambuf_iterator<char>() );
 	}
 
 	Lexer lexer;
 	Parser parser;
 	Interpreter interpreter;
 
+	interpreter.set_args( argc - 1, &argv[ 1 ] );
+
 	lexer.run( filename, std::move( data ) );
-	//std::cout << "lexer finished." << std::endl;
-
 	parser.run( std::move( lexer.tokens ) );
-	//std::cout << "Parser finished." << std::endl;
-
 	i32 ret = interpreter.run( std::move( lexer.filenames ), parser.root ).valueI32;
-	//std::cout << "Interpreter finished." << std::endl;
 
 	lexer.cleanup();
 	parser.cleanup();
 	interpreter.cleanup();
 
 	if ( ret != 0 )
-		std::cerr << "ReturnCode (" << ret << ")." << std::endl;
+		std::println( stderr, "ReturnCode ( {} ).", ret );
 
 	return ret;
 }
@@ -85,6 +80,9 @@ int main( int argc, char *argv[] )
 // -- Unity Build --
 #include "value.cpp"
 #include "token.cpp"
+#include "enums.cpp"
 #include "lexer.cpp"
 #include "parser.cpp"
 #include "interpreter.cpp"
+#include "os.cpp"
+#include "net.cpp"

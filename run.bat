@@ -1,7 +1,5 @@
 @echo OFF
 cls
-SET mypath=%~dp0
-SET testFile=input.aas
-pushd %mypath%\final\debug\
-azcode.exe %~dp0%testFile%
-popd
+bin\debug\azcode.exe example\files.aas
+REM bin\debug\azcode.exe example\imports.aas
+REM bin\debug\azcode.exe example\misc.aas a value "a string"

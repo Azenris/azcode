@@ -6,11 +6,13 @@ setlocal EnableDelayedExpansion
 for /F %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
 
 SET mypath=%~dp0
-pushd %mypath%\final\debug\
+pushd %mypath%\bin\debug\
 
 call:run_test arithmetic
 call:run_test arrays
+call:run_test files
 call:run_test functions
+call:run_test imports
 call:run_test looping
 call:run_test objects
 call:run_test printing

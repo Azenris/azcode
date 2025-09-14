@@ -21,6 +21,11 @@ for ( idx : arr ) {
 	println idx
 }
 
+// Builtin lidx for index
+for ( value : arr ) {
+	println "%0 = %1", lidx, value
+}
+
 // Loop with temporary array
 for ( idx : [ 5, 7, 2, 1 ] ) {
 	println idx

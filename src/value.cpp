@@ -1,7 +1,116 @@
 
 #include <iostream>
+#include <algorithm>
 
 #include "value.h"
+#include "interpreter.h"
+
+[[noreturn]] static void value_fatal( RESULT_CODE resultCode, const char *message )
+{
+	std::println( stderr, "[Value] {}", message );
+	exit( resultCode );
+}
+
+[[noreturn]] static void value_fatal( RESULT_CODE resultCode, const std::string message )
+{
+	std::println( stderr, "[Value] {}", message );
+	exit( resultCode );
+}
+
+template <typename... T>
+[[noreturn]] static void value_fatal( RESULT_CODE resultCode, std::format_string<T...> fmt, T&&... args )
+{
+	std::println( stderr, "[Value] {}", std::format( fmt, std::forward<T>( args )...) );
+	exit( resultCode );
+}
+
+[[noreturn]] static void value_fatal( RESULT_CODE resultCode, struct Interpreter *interpreter, Node *node, const char *message )
+{
+	std::println( stderr, "[Value] {} {}", message, interpreter->fail_at( node ) );
+	exit( resultCode );
+}
+
+[[noreturn]] static void value_fatal( RESULT_CODE resultCode, struct Interpreter *interpreter, Node *node, const std::string message )
+{
+	std::println( stderr, "[Value] {} {}", message, interpreter->fail_at( node ) );
+	exit( resultCode );
+}
+
+template <typename... T>
+[[noreturn]] static void value_fatal( RESULT_CODE resultCode, struct Interpreter *interpreter, Node *node, std::format_string<T...> fmt, T&&... args )
+{
+	std::println( stderr, "[Value] {} {}", std::format( fmt, std::forward<T>( args )...), interpreter->fail_at( node ) );
+	exit( resultCode );
+}
+
+static Value BuiltInNode_Array_Push( Interpreter *interpreter, Value &self, Node *args )
+{
+	Value &l = self.deref();
+	for ( auto arg : args->children )
+		l.arr.push_back( interpreter->run( arg ) );
+	return 0;
+}
+
+static Value BuiltInNode_Array_Pop( Interpreter *interpreter, Value &self, Node *args )
+{
+	interpreter->expect_arg( "pop", args, 1 );
+	Value &l = self.deref();
+	Value ret = l.arr.back();
+	l.arr.pop_back();
+	return ret;
+}
+
+static Value BuiltInNode_Array_Count( Interpreter *interpreter, Value &self, Node *args )
+{
+	interpreter->expect_arg( "count", args, 0 );
+	return static_cast<i64>( self.deref().arr.size() );
+}
+
+static Value BuiltInNode_Array_Sort( Interpreter *interpreter, Value &self, Node *args )
+{
+	Value &l = self.deref();
+
+	if ( args->children.empty() )
+	{
+		std::ranges::sort( l.arr, std::ranges::less() );
+	}
+	else if ( interpreter->run( args->children[ 0 ] ).get_as_bool( interpreter, args ) )
+	{
+		std::ranges::sort( l.arr, std::ranges::less() );
+	}
+	else
+	{
+		std::ranges::sort( l.arr, std::ranges::greater() );
+	}
+
+	return 0;
+}
+
+static Value BuiltInNode_Struct_Count( Interpreter *interpreter, Value &self, Node *args )
+{
+	interpreter->expect_arg( "count", args, 0 );
+	return static_cast<i64>( self.deref().map.size() );
+}
+
+Value::Value( ValueType type )
+	: type( type )
+	, scope( SCOPE_UNSET )
+{
+	switch ( type )
+	{
+	case ValueType::Struct:
+		map[ "parent" ] = nullptr;
+		map[ "count" ] = BuiltInNode_Struct_Count;
+		break;
+
+	case ValueType::Arr:
+		map[ "push" ] = BuiltInNode_Array_Push;
+		map[ "pop" ] = BuiltInNode_Array_Pop;
+		map[ "count" ] = BuiltInNode_Array_Count;
+		map[ "sort" ] = BuiltInNode_Array_Sort;
+		break;
+	}
+}
 
 Value & Value::operator = ( const Value &rhs )
 {
@@ -19,9 +128,11 @@ Value & Value::operator = ( const Value &rhs )
 	case ValueType::Node: l.valueNode = r.valueNode; break;
 	case ValueType::InbuiltFunc: l.valueInbuiltFunc = r.valueInbuiltFunc; break;
 	case ValueType::Reference: l.valueRef = r.valueRef; break;
+	case ValueType::File: break;
 	case ValueType::Command: l.keywordID = r.keywordID; break;
 	}
 
+	l.file = r.file;
 	l.valueString = r.valueString;
 	l.arr = r.arr;
 	l.map = r.map;
@@ -38,18 +149,12 @@ Value Value::operator [] ( i64 index )
 		return (*this->valueRef)[ index ];
 
 	if ( type != ValueType::Arr )
-	{
-		std::cerr << "Attempting to access subscript of value that isn't an array. ( " << *this << " )." << std::endl;
-		exit( RESULT_CODE_VALUE_SUBSCRIPT_OF_NON_ARRAY );
-	}
+		value_fatal( RESULT_CODE_VALUE_SUBSCRIPT_OF_NON_ARRAY, "Attempting to access subscript of value that isn't an array. ( {} ).", *this );
 
 	if ( index < 0 || index >= static_cast<i64>( arr.size() ) )
-	{
-		std::cerr << "Attempting to access subscript of value out of bounds[ " << index << " ]. ( " << *this << " )." << std::endl;
-		exit( RESULT_CODE_VALUE_SUBSCRIPT_OUT_OF_RANGE );
-	}
+		value_fatal( RESULT_CODE_VALUE_SUBSCRIPT_OUT_OF_RANGE, "Attempting to access subscript of value out of bounds[ {} ]. ( {} ).", index, *this );
 
-	return arr[ index ];
+	return &arr[ index ];
 }
 
 void Value::update_parent( Value *parent )
@@ -59,14 +164,14 @@ void Value::update_parent( Value *parent )
 
 	Value &value = map[ "parent" ];
 	value.type = ValueType::Reference;
-	value.scope = -5;
+	value.scope = SCOPE_STRUCT;
 	value.valueRef = parent;
 
 	for ( auto &entry : map )
 		entry.second.update_parent( this );
 }
 
-bool Value::get_as_bool( Node *node )
+bool Value::get_as_bool( Interpreter *interpreter, Node *node )
 {
 	switch ( type )
 	{
@@ -80,15 +185,45 @@ bool Value::get_as_bool( Node *node )
 	case ValueType::KeywordID: return false;
 	case ValueType::Node: return valueNode;
 	case ValueType::InbuiltFunc: return false;
-	case ValueType::Reference: return valueRef->get_as_bool( node );
+	case ValueType::Reference: return valueRef->get_as_bool( interpreter, node );
+	case ValueType::File: return file && file->is_open();
 	case ValueType::Command: return false;
 	}
 
-	std::cerr << "Cannot convert from " << *this << " to bool. (Line: " << node->token->line << ")" << std::endl;
-	exit( RESULT_CODE_VALUE_CANNOT_CONVERT );
+	value_fatal( RESULT_CODE_VALUE_CANNOT_CONVERT, interpreter, node, "Cannot convert from {} to bool.", *this );
 }
 
-i64 Value::get_as_i64( Node *node )
+i32 Value::get_as_i32( Interpreter *interpreter, Node *node )
+{
+	switch ( type )
+	{
+	case ValueType::Undefined: return 0;
+	case ValueType::NumberI32: return valueI32;
+	case ValueType::NumberI64: return static_cast<i32>( valueI64 );
+
+	case ValueType::StringLiteral:
+		{
+			if ( valueString.empty() )
+				return 0;
+			i32 idx;
+			if ( to_int( &idx, valueString.c_str() ) == ToIntResult::Success )
+			{
+				return idx;
+			}
+		}
+		break;
+
+	case ValueType::Reference:
+		return valueRef->get_as_i32( interpreter, node );
+
+	case ValueType::File:
+		return file && file->is_open();
+	}
+
+	value_fatal( RESULT_CODE_VALUE_CANNOT_CONVERT, interpreter, node, "Cannot convert from {} to i32.", *this );
+}
+
+i64 Value::get_as_i64( Interpreter *interpreter, Node *node )
 {
 	switch ( type )
 	{
@@ -109,14 +244,16 @@ i64 Value::get_as_i64( Node *node )
 		break;
 
 	case ValueType::Reference:
-		return valueRef->get_as_i64( node );
+		return valueRef->get_as_i64( interpreter, node );
+
+	case ValueType::File:
+		return file && file->is_open();
 	}
 
-	std::cerr << "Cannot convert from " << *this << " to i64. (Line: " << node->token->line << ")" << std::endl;
-	exit( RESULT_CODE_VALUE_CANNOT_CONVERT );
+	value_fatal( RESULT_CODE_VALUE_CANNOT_CONVERT, interpreter, node, "Cannot convert from {} to i64.", *this );
 }
 
-std::string Value::get_as_string( Node *node )
+std::string Value::get_as_string( Interpreter *interpreter, Node *node )
 {
 	switch ( type )
 	{
@@ -124,11 +261,11 @@ std::string Value::get_as_string( Node *node )
 	case ValueType::NumberI32: return std::to_string( valueI32 );
 	case ValueType::NumberI64: return std::to_string( valueI64 );
 	case ValueType::StringLiteral: return valueString;
-	case ValueType::Reference: return valueRef->get_as_string( node );
+	case ValueType::Reference: return valueRef->get_as_string( interpreter, node );
+	case ValueType::File: return valueString;
 	}
 
-	std::cerr << "Cannot convert from " << *this << " to std::string. (Line: " << node->token->line << ")" << std::endl;
-	exit( RESULT_CODE_VALUE_CANNOT_CONVERT );
+	value_fatal( RESULT_CODE_VALUE_CANNOT_CONVERT, interpreter, node, "Cannot convert from {} to string.", *this );
 }
 
 i64 Value::count() const
@@ -146,6 +283,7 @@ i64 Value::count() const
 	case ValueType::Node: return 0;
 	case ValueType::InbuiltFunc: return 0;
 	case ValueType::Reference: return valueRef->count();
+	case ValueType::File: return 0;
 	case ValueType::Command: return 0;
 	}
 	return 0;
@@ -154,6 +292,7 @@ i64 Value::count() const
 void Value::clear()
 {
 	type = ValueType::Undefined;
+	file.reset();
 	valueString.clear();
 	arr.clear();
 	map.clear();
@@ -171,81 +310,6 @@ const Value &Value::deref() const
 	if ( type == ValueType::Reference )
 		return *valueRef;
 	return *this;
-}
-
-std::ostream & operator << ( std::ostream &out, const Value &value )
-{
-	switch ( value.type )
-	{
-	case ValueType::Undefined:			return out << "Undefined";
-	case ValueType::NumberI32:			return out << value.valueI32;
-	case ValueType::NumberI64:			return out << value.valueI64;
-	case ValueType::StringLiteral:		return out << value.valueString;
-
-	case ValueType::Struct:
-		out << "{ ";
-		if ( !value.map.empty() )
-		{
-			auto entry = []( std::ostream &o, auto iter, bool &f )
-			{
-				if ( iter->first != "parent" )
-				{
-					if ( f )
-						o << iter->first << ":" << iter->second;
-					else
-						o << ", " << iter->first << ":" << iter->second;
-					f = false;
-				}
-			};
-
-			bool first = true;
-			auto iter = value.map.begin();
-			entry( out, iter, first );
-			for ( ++iter; iter != value.map.end(); ++iter )
-				entry( out, iter, first );
-		}
-		return out << " }";
-
-	case ValueType::Arr:
-		out << "[ ";
-		if ( !value.arr.empty() )
-		{
-			out << value.arr[ 0 ];
-			for ( u64 i = 1, count = value.arr.size(); i < count; ++i )
-				out << ", " << value.arr[ i ];
-		}
-		return out << " ]{" << value.arr.size() << "}";
-
-	case ValueType::TokenID:			return out << value.valueString;
-	case ValueType::KeywordID:			return out << value.valueString;
-	case ValueType::Node:				return out << "Function";
-	case ValueType::InbuiltFunc:		return out << "InbuiltFunc";
-	case ValueType::Reference:			return out << *value.valueRef;
-	case ValueType::Command:			return out << Keywords[ static_cast<i32>( value.keywordID ) ].name;
-	}
-
-	return out << "Unhandled value ValueType( " << static_cast<i32>( value.type ) << " )";
-}
-
-std::ostream & operator << ( std::ostream &out, const ValueType &valueType )
-{
-	switch ( valueType )
-	{
-	case ValueType::Undefined:			return out << "Undefined";
-	case ValueType::NumberI32:			return out << "NumberI32";
-	case ValueType::NumberI64:			return out << "NumberI64";
-	case ValueType::StringLiteral:		return out << "StringLiteral";
-	case ValueType::Struct:				return out << "Struct";
-	case ValueType::Arr:				return out << "Array";
-	case ValueType::TokenID:			return out << "TokenID";
-	case ValueType::KeywordID:			return out << "KeywordID";
-	case ValueType::Node:				return out << "Node";
-	case ValueType::InbuiltFunc:		return out << "InbuiltFunc";
-	case ValueType::Reference:			return out << "Reference";
-	case ValueType::Command:			return out << "Command";
-	}
-
-	return out << "Unhandled value '<<' ValueType( '" << static_cast<i32>( valueType ) << "' )";
 }
 
 bool operator == ( const Value &lhs, const Value &rhs )
@@ -266,8 +330,7 @@ bool operator == ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return l.valueString == r.valueString;
 	}
 
-	std::cerr << "Unhandled value '==' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_COMPARITOR );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_COMPARITOR, "Unhandled value '==' types( {}, {} )", l.type, r.type );
 }
 
 bool operator != ( const Value &lhs, const Value &rhs )
@@ -293,8 +356,7 @@ bool operator < ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::stoll( l.valueString ) < std::stoll( r.valueString );
 	}
 
-	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '<' types( {}, {} )", l.type, r.type );
 }
 
 bool operator > ( const Value &lhs, const Value &rhs )
@@ -315,8 +377,7 @@ bool operator > ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::stoll( l.valueString ) > std::stoll( r.valueString );
 	}
 
-	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '>' types( {}, {} )", l.type, r.type );
 }
 
 bool operator <= ( const Value &lhs, const Value &rhs )
@@ -337,8 +398,7 @@ bool operator <= ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::stoll( l.valueString ) <= std::stoll( r.valueString );
 	}
 
-	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '<=' types( {}, {} )", l.type, r.type );
 }
 
 bool operator >= ( const Value &lhs, const Value &rhs )
@@ -359,8 +419,7 @@ bool operator >= ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::stoll( l.valueString ) >= std::stoll( r.valueString );
 	}
 
-	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '>=' types( {}, {} )", l.type, r.type );
 }
 
 Value operator - ( const Value &lhs, const Value &rhs )
@@ -381,8 +440,7 @@ Value operator - ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) - std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value '-' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '-' types( {}, {} )", l.type, r.type );
 }
 
 Value & operator -= ( Value &lhs, const Value &rhs )
@@ -404,8 +462,7 @@ Value & operator -= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) - r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) - std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value '-=' types( " << l.type << ", " << r.type << " )" << std::endl;
-		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+		value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '-=' types( {}, {} )", l.type, r.type );
 	}
 
 	return lhs;
@@ -429,8 +486,7 @@ Value operator + ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) + std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value '+' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '+' types( {}, {} )", l.type, r.type );
 }
 
 Value & operator += ( Value &lhs, const Value &rhs )
@@ -452,8 +508,7 @@ Value & operator += ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) + r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) + std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value '+=' types( " << l.type << ", " << r.type << " )" << std::endl;
-		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+		value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '+=' types( {}, {} )", l.type, r.type );
 	}
 
 	return lhs;
@@ -477,8 +532,7 @@ Value operator / ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) / std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value '/' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '/' types( {}, {} )", l.type, r.type );
 }
 
 Value & operator /= ( Value &lhs, const Value &rhs )
@@ -500,8 +554,7 @@ Value & operator /= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) / r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) / std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value '/=' types( " << l.type << ", " << r.type << " )" << std::endl;
-		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+		value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '/=' types( {}, {} )", l.type, r.type );
 	}
 
 	return lhs;
@@ -525,8 +578,7 @@ Value operator * ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) * std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value '*' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '*' types( {}, {} )", l.type, r.type );
 }
 
 Value & operator *= ( Value &lhs, const Value &rhs )
@@ -548,8 +600,7 @@ Value & operator *= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) * r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) * std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value '*=' types( " << l.type << ", " << r.type << " )" << std::endl;
-		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+		value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '(=' types( {}, {} )", l.type, r.type );
 	}
 
 	return lhs;
@@ -573,8 +624,7 @@ Value operator & ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) & std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value '&' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '&' types( {}, {} )", l.type, r.type );
 }
 
 Value & operator &= ( Value &lhs, const Value &rhs )
@@ -596,8 +646,7 @@ Value & operator &= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) & r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) & std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value '&=' types( " << l.type << ", " << r.type << " )" << std::endl;
-		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+		value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '&=' types( {}, {} )", l.type, r.type );
 	}
 
 	return lhs;
@@ -621,8 +670,7 @@ Value operator | ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) | std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value '|' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '|' types( {}, {} )", l.type, r.type );
 }
 
 Value & operator |= ( Value &lhs, const Value &rhs )
@@ -644,8 +692,7 @@ Value & operator |= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) | r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) | std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value '|=' types( " << l.type << ", " << r.type << " )" << std::endl;
-		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+		value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '|=' types( {}, {} )", l.type, r.type );
 	}
 
 	return lhs;
@@ -669,8 +716,7 @@ Value operator ^ ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) ^ std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value '^' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '^' types( {}, {} )", l.type, r.type );
 }
 
 Value & operator ^= ( Value &lhs, const Value &rhs )
@@ -692,8 +738,7 @@ Value & operator ^= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) ^ r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) ^ std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value '^=' types( " << l.type << ", " << r.type << " )" << std::endl;
-		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+		value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '^=' types( {}, {} )", l.type, r.type );
 	}
 
 	return lhs;
@@ -717,8 +762,7 @@ Value operator % ( const Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	return std::to_string( std::stoll( l.valueString ) % std::stoll( r.valueString ) );
 	}
 
-	std::cerr << "Unhandled value '%' types( " << l.type << ", " << r.type << " )" << std::endl;
-	exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+	value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '%' types( {}, {} )", l.type, r.type );
 }
 
 Value & operator %= ( Value &lhs, const Value &rhs )
@@ -740,8 +784,7 @@ Value & operator %= ( Value &lhs, const Value &rhs )
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::NumberI64 ):		lhs = std::to_string( std::stoll( l.valueString ) % r.valueI64 ); break;
 	case TYPE_PAIR( ValueType::StringLiteral, ValueType::StringLiteral ):	lhs = std::to_string( std::stoll( l.valueString ) % std::stoll( r.valueString ) ); break;
 	default:
-		std::cerr << "Unhandled value '%=' types( " << l.type << ", " << r.type << " )" << std::endl;
-		exit( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC );
+		value_fatal( RESULT_CODE_VALUE_UNDEFINED_ARITHMETIC, "Unhandled value '%=' types( {}, {} )", l.type, r.type );
 	}
 
 	return lhs;

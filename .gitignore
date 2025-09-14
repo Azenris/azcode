@@ -8,9 +8,8 @@ desktop.ini
 # build data / generated data / etc...
 [Tt][Ee][Mm][Pp]/
 
-build
-final
-input.txt
+obj
+bin
 
 # vs cache data
 tools/debug/.vs/

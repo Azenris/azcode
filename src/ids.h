@@ -57,6 +57,7 @@ enum class TokenID
 
 enum class KeywordID
 {
+	Import,
 	Return,
 	False,
 	True,
@@ -90,6 +91,7 @@ enum class NodeID
 	FunctionArgs,
 	FunctionCall,
 	If,
+	Import,
 	Return,
 	Print,
 	Println,
@@ -117,5 +119,6 @@ enum class ValueType
 	Node,
 	InbuiltFunc,
 	Reference,
+	File,
 	Command,
 };

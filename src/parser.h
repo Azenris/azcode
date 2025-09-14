@@ -81,6 +81,10 @@ constexpr NodeType NodeTypes[] =
 		.name = "If",
 	},
 	{
+		.id = NodeID::Import,
+		.name = "Import",
+	},
+	{
 		.id = NodeID::Return,
 		.name = "Return",
 	},
@@ -130,8 +134,6 @@ constexpr NodeType NodeTypes[] =
 	},
 };
 
-std::ostream & operator << ( std::ostream &out, const NodeID &nodeID );
-
 struct Node
 {
 	NodeID type;
@@ -154,4 +156,42 @@ struct Parser
 	i32 tokenIndex;
 	i32 scope;
 	Node *root;
+};
+
+struct Arg
+{
+	Node **args;
+
+	Arg( Node **children )
+		: args( children )
+	{
+	}
+
+	inline Node *next()
+	{
+		Node *ret = *args;
+		args++;
+		return ret;
+	}
+
+	operator Node * () const
+	{
+		return *args;
+	}
+};
+
+// --------------------------------------------------------------------
+
+template <>
+struct std::formatter<NodeID>
+{
+	constexpr auto parse( std::format_parse_context &ctx )
+	{
+		return ctx.begin();
+	}
+
+	std::format_context::iterator format( const NodeID &nodeID, std::format_context &ctx ) const
+	{
+		return std::format_to( ctx.out(), "NodeType: {}", NodeTypes[ static_cast<i32>( nodeID ) ].name );
+	}
 };

@@ -1,0 +1,24 @@
+
+import os
+
+filename = "temp/temp.txt"
+
+file = os.open( filename )
+assert os.exists( filename )
+println "Opened file %0", file
+
+// write and read test
+text = "Testing!"
+os.write( file, text )
+valueRead = os.read( file )
+assert valueRead == text
+
+os.close( file )
+
+// open, read the whole file, and close
+println "filesize: %0 - %1bytes", filename, os.file_size( filename )
+wholeFile = os.read_file( filename )
+assert wholeFile == text
+
+os.rm( filename )
+assert os.exists( filename ) == false

@@ -1,0 +1,10 @@
+
+import os
+
+println( "OS Name = %0", os.name )
+
+dir = "testDir6182515"
+os.mkdir( dir )
+assert os.exists( dir )
+os.rm( dir )
+assert os.exists( dir ) == false

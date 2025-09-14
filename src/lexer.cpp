@@ -2,6 +2,26 @@
 #include <filesystem>
 
 #include "lexer.h"
+#include "enums.h"
+
+[[noreturn]] static void lexer_fatal( RESULT_CODE resultCode, const char *message )
+{
+	std::println( stderr, "[Lexer] {}", message );
+	exit( resultCode );
+}
+
+[[noreturn]] static void lexer_fatal( RESULT_CODE resultCode, const std::string message )
+{
+	std::println( stderr, "[Lexer] {}", message );
+	exit( resultCode );
+}
+
+template <typename... T>
+[[noreturn]] static void lexer_fatal( RESULT_CODE resultCode, std::format_string<T...> fmt, T&&... args )
+{
+	std::println( stderr, "[Lexer] {}", std::format( fmt, std::forward<T>( args )...) );
+	exit( resultCode );
+}
 
 // Note: \n is not skipped, it is used to break statements up
 static void skip_whitespace( Lexer *lexer )
@@ -48,19 +68,14 @@ static bool is_digit( char c )
 
 constexpr bool IdentiferCharLUT[ 123 ] =
 {
-	false, false, false, false, false, false, false, false, false, false,
-	false, false, false, false, false, false, false, false, false, false,
-	false, false, false, false, false, false, false, false, false, false,
-	false, false, false, false, false, false, false, false, false, false,
-	false, false, false, false, false, false, false, false,  true,  true,
-	 true,  true,  true,  true,  true,  true,  true,  true, false, false,
-	false, false, false, false, false,  true,  true,  true,  true,  true,
-	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
-	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
-	 true, false, false, false, false,  true, false,  true,  true,  true,
-	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
-	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
-	 true,  true,  true,
+    false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+     true,  true,  true,  true,  true,  true,  true,  true,  true,  true, false, false, false, false, false, false,
+    false,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
+     true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true, false, false, false, false,  true,
+    false,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true, 
+     true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
 };
 
 static bool is_identifier_start( char c )
@@ -98,6 +113,10 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 			lexer->str.assign( start, len );
 
+			const EnumType *en = get_enum( lexer->str );
+			if ( en )
+				return { .id = en->token, .value = en->value, .line = lexer->line, .file = lexer->file };
+
 			const KeywordType *kw = get_keyword( lexer->str );
 			if ( kw )
 				return { .id = TokenID::Keyword, .value = { kw->id, lexer->str.c_str() }, .line = lexer->line, .file = lexer->file };
@@ -116,8 +135,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 				return { .id = TokenID::Number, .value = number, .line = lexer->line, .file = lexer->file };
 			}
 
-			std::cerr << "[Lexer] Could not convert value to int ( " << lexer->txt << " )." << std::endl;
-			exit( RESULT_CODE_CANNOT_CONVERT_TO_INT );
+			lexer_fatal( RESULT_CODE_CANNOT_CONVERT_TO_INT, "Could not convert value to i32 ( {} ).", lexer->txt );
 		}
 
 		switch ( c )
@@ -327,8 +345,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 						c = *(++lexer->txt);
 						if ( c == '\0' )
 						{
-							std::cerr << "[Lexer] String literal not closed." << std::endl;
-							exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
+							lexer_fatal( RESULT_CODE_STRING_LITERAL_NOT_CLOSED, "String literal not closed." );
 						}
 						else if ( c == '\n' )
 						{
@@ -453,8 +470,7 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 							if ( c == '\0' )
 							{
-								std::cerr << "[Lexer] Included file string literal not closed." << std::endl;
-								exit( RESULT_CODE_STRING_LITERAL_NOT_CLOSED );
+								lexer_fatal( RESULT_CODE_STRING_LITERAL_NOT_CLOSED, "Included file string literal not closed." );
 							}
 							else if ( c == '\n' )
 							{
@@ -477,13 +493,10 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 
 								if ( !file.is_open() )
 								{
-									std::cerr << "Unable to open included file: " << filename << std::endl;
-									exit( RESULT_CODE_FAILED_TO_OPEN_INCLUDED_FILE );
+									lexer_fatal( RESULT_CODE_FAILED_TO_OPEN_INCLUDED_FILE, "Unable to open included file: {}", filename );
 								}
 
-								std::stringstream stream;
-								stream << file.rdbuf();
-								data = stream.str();
+								data = std::string( ( std::istreambuf_iterator<char>( file ) ), std::istreambuf_iterator<char>() );
 							}
 
 							Token token;
@@ -511,14 +524,12 @@ static Token next_token( Lexer *lexer, Token *lastToken )
 					}
 					else
 					{
-						std::cerr << "[Lexer] Expected opening \" for file ( " << lexer->str << " )." << std::endl;
-						exit( RESULT_CODE_CANNOT_CONVERT_TO_INT );
+						lexer_fatal( RESULT_CODE_CANNOT_CONVERT_TO_INT, "Expected opening \" for file ( {} ).", lexer->str );
 					}
 				}
 				else
 				{
-					std::cerr << "[Lexer] Unknown command ( " << lexer->str << " )." << std::endl;
-					exit( RESULT_CODE_CANNOT_CONVERT_TO_INT );
+					lexer_fatal( RESULT_CODE_UNEXPECTED_VALUE, "Unknown command ( {} ).", lexer->str );
 				}
 			}
 			break;

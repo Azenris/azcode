@@ -4,3 +4,15 @@
 println test(), test1(), test2(), test3()
 
 assert test4() == 42
+
+// Get program args...
+
+import args
+
+// Builtin lidx for index
+for ( value : args ) {
+	println "%0 = %1", lidx, value
+}
+
+// Some Builtin Enums
+println "INVALID_SOCKET = %0", INVALID_SOCKET

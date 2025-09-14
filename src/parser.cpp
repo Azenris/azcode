@@ -3,9 +3,23 @@
 
 #include "parser.h"
 
-std::ostream & operator << ( std::ostream &out, const NodeID &nodeID )
+[[noreturn]] static void parser_fatal( RESULT_CODE resultCode, const char *message )
 {
-	return out << "NodeType: " << NodeTypes[ static_cast<i32>( nodeID ) ].name;
+	std::println( stderr, "[Parser] {}", message );
+	exit( resultCode );
+}
+
+[[noreturn]] static void parser_fatal( RESULT_CODE resultCode, const std::string message )
+{
+	std::println( stderr, "[Parser] {}", message );
+	exit( resultCode );
+}
+
+template <typename... T>
+[[noreturn]] static void parser_fatal( RESULT_CODE resultCode, std::format_string<T...> fmt, T&&... args )
+{
+	std::println( stderr, "[Parser] {}", std::format( fmt, std::forward<T>( args )...) );
+	exit( resultCode );
 }
 
 // Forward Decl
@@ -28,10 +42,7 @@ static Node *new_node( Parser *parser, NodeID type, Token *token )
 static Token *parser_consume( Parser *parser, TokenID tokenID )
 {
 	if ( parser->token->id != tokenID )
-	{
-		std::cerr << "[Parser] Unexpected token( " << *parser->token << " ) wanted ( " << tokenID << " )." << std::endl;
-		exit( RESULT_CODE_UNEXPECTED_TOKEN );
-	}
+		parser_fatal( RESULT_CODE_UNEXPECTED_TOKEN, "Unexpected token( {} ) wanted ( {} ).", *parser->token, tokenID );
 	Token *token = &parser->tokens[ parser->tokenIndex++ ];
 	parser->token = &parser->tokens[ parser->tokenIndex ];
 	return token;
@@ -74,8 +85,8 @@ static i32 get_operator_precedence( TokenID tokenID )
 	case TokenID::LesserThan: return 5;
 	case TokenID::LesserOrEqual: return 5;
 	}
-	std::cerr << "[Parser] Unexpected operator precendence token( " << tokenID << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected operator precendence token( {} ).", tokenID );
 }
 
 // precendence
@@ -230,6 +241,13 @@ static Node *parser_parse_keyword( Parser *parser )
 
 	switch ( token->value.keywordID )
 	{
+	case KeywordID::Import:
+		{
+			Node *node = new_node( parser, NodeID::Import, token );
+			node->left = parser_parse( parser );
+			return node;
+		}
+
 	case KeywordID::Return:
 		{
 			Node *node = new_node( parser, NodeID::Return, token );
@@ -451,8 +469,7 @@ static Node *parser_parse_keyword( Parser *parser )
 		}
 	}
 
-	std::cerr << "[Parser] Unexpected keyword token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected keyword token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_struct_decl( Parser *parser )
@@ -517,8 +534,7 @@ static Node *parser_parse_identifier_assign( Parser *parser )
 		break;
 	}
 
-	std::cerr << "[Parser] Assign expected. Instead of token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Assign expected. Instead of token( {} ).", *parser->token );
 }
 
 static Node *parse_parse_dot_access( Parser *parser, Node *node )
@@ -550,8 +566,7 @@ static Node *parse_parse_dot_access( Parser *parser, Node *node )
 		}
 		else
 		{
-			std::cerr << "[Parser] Unexpected dot keyword token( " << *parser->token << " )." << std::endl;
-			exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+			parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected dot keyword token( {} ).", *parser->token );
 		}
 	}
 
@@ -669,170 +684,142 @@ static Node *parser_parse_number( Parser *parser )
 
 static Node *parser_parse_minus( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected minus token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected minus token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_plus( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected plus token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected plus token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_divide( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected divide token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected divide token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_asterisk( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected asterisk token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected asterisk token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_tilde( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected tilde( token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected tilde( token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_amp( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected amp token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected amp token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_pipe( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected pipe token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected pipe token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_hat( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected hat token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected hat token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_percent( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected percent token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected percent token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_exclamation( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected exclamation token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected exclamation token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_tildeassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected tildeassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected tildeassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_ampassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected ampassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected ampassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_pipeassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected pipeassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected pipeassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_hatassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected hatassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected hatassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_percentassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected percentassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected percentassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_exclamationassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected exclamationassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected exclamationassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_doubleamp( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected doubleamp token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected doubleamp token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_doublepipe( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected doublepipe token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected doublepipe token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_minusassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected minusassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected minusassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_plusassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected plusassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected plusassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_divideassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected divideassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected divideassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_asteriskassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected asteriskassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected asteriskassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_assign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected assign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected assign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_doubleequal( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected doubleequal token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected doubleequal token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_greaterthan( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected greaterthan token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected greaterthan token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_greaterorequal( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected greaterorequal token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected greaterorequal token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_lesserthan( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected lesserthan token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected lesserthan token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_lesserorequal( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected lesserorequal token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected lesserorequal token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_parenopen( Parser *parser )
@@ -856,8 +843,7 @@ static Node *parser_parse_parenopen( Parser *parser )
 
 static Node *parser_parse_parenclose( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected parenclose token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected parenclose token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_braceopen( Parser *parser )
@@ -884,8 +870,7 @@ static Node *parser_parse_braceopen( Parser *parser )
 
 static Node *parser_parse_braceclose( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected blockclose token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected blockclose token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_squareopen( Parser *parser )
@@ -918,8 +903,7 @@ static Node *parser_parse_squareopen( Parser *parser )
 
 static Node *parser_parse_squareclose( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected squareclose token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected squareclose token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_period( Parser *parser )
@@ -932,32 +916,27 @@ static Node *parser_parse_period( Parser *parser )
 		identiferNode->scope = -1;
 		return node;
 	}
-	std::cerr << "[Parser] Unexpected period token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected period token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_comma( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected comma token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected comma token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_colon( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected colon token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected colon token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_colonassign( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected colonassign token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected colonassign token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_semicolon( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected semicolon token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected semicolon token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_newline( Parser *parser )
@@ -968,8 +947,7 @@ static Node *parser_parse_newline( Parser *parser )
 
 static Node *parser_parse_endoffile( Parser *parser )
 {
-	std::cerr << "[Parser] Unexpected endoffile token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected endoffile token( {} ).", *parser->token );
 }
 
 static Node *parser_parse( Parser *parser )
@@ -1023,8 +1001,7 @@ static Node *parser_parse( Parser *parser )
 	case TokenID::EndOfFile: return parser_parse_endoffile( parser );
 	}
 
-	std::cerr << "[Parser] Unexpected parse token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected parse token( {} ).", *parser->token );
 }
 
 static Node *parser_parse_top( Parser *parser )
@@ -1049,8 +1026,7 @@ static Node *parser_parse_top( Parser *parser )
 	case TokenID::EndOfFile: return parser_parse_endoffile( parser );
 	}
 
-	std::cerr << "[Parser] Unexpected parse token( " << *parser->token << " )." << std::endl;
-	exit( RESULT_CODE_UNHANDLED_TOKEN_PARSING );
+	parser_fatal( RESULT_CODE_UNHANDLED_TOKEN_PARSING, "Unexpected parse token( {} ).", *parser->token );
 }
 
 void Parser::run( std::vector<Token> tokensIn )
@@ -1061,10 +1037,14 @@ void Parser::run( std::vector<Token> tokensIn )
 	token = &tokens[ tokenIndex ];
 	root = new_node( this, NodeID::Entry, nullptr );
 
-	// std::cout << "[Tokens]" << std::endl;
-	// for ( Token &t : tokens )
-		// std::cout << " " << t << std::endl;
-	// std::cout << std::endl;
+	if ( false )
+	{
+		std::string tokensStr;
+		std::format_to( std::back_inserter( tokensStr ), "[Tokens]\n" );
+		for ( Token &t : tokens )
+			std::format_to( std::back_inserter( tokensStr ), " {}\n", t );
+		std::println( "{}", tokensStr );
+	}
 
 	Node *node;
 	while ( token->id != TokenID::EndOfFile )
@@ -1075,10 +1055,7 @@ void Parser::run( std::vector<Token> tokensIn )
 	}
 
 	if ( root->children.empty() )
-	{
-		std::cerr << "[Parser] Script is empty." << std::endl;
-		exit( RESULT_CODE_EMPTY_SCRIPT );
-	}
+		parser_fatal( RESULT_CODE_EMPTY_SCRIPT, "Script is empty." );
 
 	add_return_if_needed( this, root );
 }
