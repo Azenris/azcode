@@ -10,9 +10,11 @@ println "Opened file %0", file
 // write and read test
 text = "Testing!"
 os.write( file, text )
+os.close( file )
+
+os.open( file )
 valueRead = os.read( file )
 assert valueRead == text
-
 os.close( file )
 
 // open, read the whole file, and close
